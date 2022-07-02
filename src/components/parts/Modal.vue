@@ -25,6 +25,7 @@
 
 <script>
 import constants from '../../js/constants'
+import utils from '../../js/utils'
 
 export default {
   name: "Modal",
@@ -36,6 +37,9 @@ export default {
   computed: {
     constants: function() {
       return constants.instance;
+    },
+    utils: function() {
+      return utils.instance;
     }
   },
   methods: {
@@ -55,17 +59,26 @@ export default {
       let params = this.daialog ?? { type: this.constants.DaialogOkCancel };
       return params.type ?? this.constants.DaialogOkCancel;
     },
-    execute: function(type) {
+    execute: async function(type) {
       var params = this.daialog ?? { ok: () => {} };
       if (type == "ok") {
         let ok = params.ok ?? function() {};
-        ok();
+        if (this.utils.isAsync(ok)) {
+          console.log("async executed");
+          await ok();
+        } else {
+          ok();
+        }
         params.show = false;
       }
       
       if (type == "cancel") {
         let cancel = params.cancel ?? function() {};
-        cancel();
+        if (this.utils.isAsync(cancel)) {
+          await cancel();
+        } else {
+          cancel();
+        }
         params.show = false;
       }
     } 

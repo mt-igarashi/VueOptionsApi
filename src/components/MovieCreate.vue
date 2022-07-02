@@ -164,7 +164,7 @@ export default {
       this.daialog = {
         title: this.constants.RegisterConfirmTitle,
         message: this.constants.RegisterConfirmMessage,
-        ok: () => { this.create() },
+        ok: async () => { await this.create() },
         cancel: null,
         show: true
       };

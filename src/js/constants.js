@@ -1,13 +1,15 @@
 export default class Constants {
   static instance = new Constants();
+  static #counter = 0;
   
   /*
    * 関数概要: コンストラクタ
    */
   constructor() {
-    if (Constants.instance) {
+    if (Constants.counter > 0) {
       throw "creation of instance is not permitted";
     }
+    Constants.counter++;
   }
   
   /*

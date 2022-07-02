@@ -1,13 +1,15 @@
 export default class Utils {
   static instance = new Utils();
+  static #counter = 0;
   
   /*
    * 関数概要: コンストラクタ
    */
   constructor() {
-    if (Utils.instance) {
+    if (Utils.counter > 0) {
       throw "creation of instance is not permitted";
     }
+    Utils.counter++;
   }
   
   /*
@@ -50,7 +52,7 @@ export default class Utils {
    */
   formatDollars(number) {
     if (!number) {
-      "";
+      return "";
     }
     return `$ ${number}`;
   }
@@ -119,6 +121,14 @@ export default class Utils {
       elem.style["pointer-events"] = "auto";
     });
     vue.loading = false;
+  }
+
+  /*
+   * 関数概要: Functionがayncであるかを判定します。
+   * 引数：func Function
+   */
+  isAsync(func) {
+    return Object.getPrototypeOf(func) === Object.getPrototypeOf(async function () {});
   }
   
   ///////////////////////////////////

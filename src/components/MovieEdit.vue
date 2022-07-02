@@ -170,7 +170,7 @@ export default {
       this.daialog = {
         title: this.constants.UpdateConfirmTitle,
         message: this.constants.UpdateConfirmMessage,
-        ok: () => { this.edit() },
+        ok: async () => { await this.edit() },
         cancel: null,
         show: true
       };

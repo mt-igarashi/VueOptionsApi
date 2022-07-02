@@ -120,7 +120,10 @@ export default class MovieEdit {
         return;
       }
       this.vue.messages = this.utils.createMessage(this.constants.DbUpdated);
-      window.opener.document.querySelector("#reload").click();
+      
+      if (window.opener) {
+        window.opener.document.querySelector("#reload").click();
+      }
     })
     .catch((error) => {
       console.log(error);
