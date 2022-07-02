@@ -1,5 +1,6 @@
 <template>
-  <div><Modal :daialog="daialog" /></div>
+  <Loading :loading="loading" />
+  <Modal :daialog="daialog" />
   <header>
     <footer>
       <slot name="header">
@@ -17,7 +18,6 @@
               <slot name="main-title"></slot>
             </h2>
             <Messages :messages="messages" />
-            <Loading :loading="loading" />
             <slot name="main"></slot>
           </div>
         </div>

@@ -1,18 +1,14 @@
 <template>
-  <template v-if="messages && messages.errors && messages.errors.length > 0">
-    <div id="error" class="alert alert-danger" role="alert">
-    <template v-for="error in messages.errors" :key="error">
-      <div id="msg">{{error}}</div>
-    </template>
-    </div>
+  <div v-if="messages && messages.errors && messages.errors.length > 0" id="error" class="alert alert-danger" role="alert">
+  <template v-for="error in messages.errors" :key="error">
+    <div id="msg">{{error}}</div>
   </template>
-  <template v-if="messages && messages.messages && messages.messages.length > 0">
-    <div id="message" class="alert alert-success" role="alert">
-    <template v-for="message in messages.messages" :key="message">
-      <div id="msg">{{message}}</div>
-    </template>
-    </div>
+  </div>
+  <div v-if="messages && messages.messages && messages.messages.length > 0" id="message" class="alert alert-success" role="alert">
+  <template v-for="message in messages.messages" :key="message">
+    <div id="msg">{{message}}</div>
   </template>
+  </div>
 </template>
 
 <script>

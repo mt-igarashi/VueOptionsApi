@@ -1,15 +1,15 @@
 export default class Utils {
-  static instance = new Utils();
   static #counter = 0;
+  static instance = new Utils();
   
   /*
    * 関数概要: コンストラクタ
    */
   constructor() {
-    if (Utils.counter > 0) {
+    if (Utils.#counter > 0) {
       throw "creation of instance is not permitted";
     }
-    Utils.counter++;
+    Utils.#counter++;
   }
   
   /*

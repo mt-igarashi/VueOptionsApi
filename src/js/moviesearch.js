@@ -139,6 +139,7 @@ export default class MovieSearch {
     })
     .catch((error) => {
       console.log(error);
+      this.vue.movies = [];
       this.vue.messages = this.utils.createErrorMessage(this.constants.SystemError);
     })
     .finally(() => {
@@ -148,7 +149,7 @@ export default class MovieSearch {
   }
   
   /*
-   * 関数概要: 映画を検索します。
+   * 関数概要: 映画を削除します。
    */
   async delete(item) {
     this.vue.messages = this.utils.createErrorMessage();
@@ -196,15 +197,6 @@ export default class MovieSearch {
   moveDetail(item) {
     this.vue.messages = this.utils.createErrorMessage();
     this.vue.$router.push({ name: "MovieDetail", params: {id: item.id}});
-  }
-  
-  /*
-   * 関数概要: 映画を削除します。
-   * 引数：item 映画
-   */
-  deleteMovie(item) {
-    this.vue.messages = this.utils.createErrorMessage();
-    this.delete(item);
   }
   
   /*
@@ -311,8 +303,6 @@ export default class MovieSearch {
       id: "releaseDate",
       title: "公開日",
       style: this.rowStyle(),
-      frozen: true,
-      position: "280px",
       converter: this.utils.convertDisplayDate
     },
     {

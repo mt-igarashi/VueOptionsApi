@@ -1,6 +1,5 @@
 <template>
-  <template v-if="total != 0">
-  <div class="nav-links">
+  <div v-if="total > 0" class="nav-links">
     <template v-if="prevPegeSize > 0">
       <template v-if="prevPegeSize < total">
         <a class="prev page-numbers" href="#" @click.prevent="reloadPage(pageNumber - 1, pageSize)">«</a>
@@ -27,7 +26,6 @@
       <a class="next page-numbers" href="#" @click.prevent="">»</a>
     </template>
   </div>
-  </template>
 </template>
 
 <script>

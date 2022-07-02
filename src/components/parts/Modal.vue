@@ -88,4 +88,103 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.modal_wrap input {
+  display: none;
+}
+
+.modal_overlay {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.5s, transform 0s 0.5s;
+  transform: scale(0);
+}
+
+.modal_content {
+  align-self: center;
+  width: 60%;
+  padding: 30px 30px 15px;
+  box-sizing: border-box;
+  background: #fff;
+  line-height: 1.4em;
+  transition: 0.5s;
+}
+
+.modal_content p {
+  padding-top: 0;
+}
+
+.close_button {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal_overlay {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.5s;
+}
+
+.modal_overlay .modal_content {
+  transform: translateY(20px);
+}
+
+.modal_title {
+  font-size: 1.5em;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 10px;
+  margin-top:0;
+  margin-bottom: 0;
+}
+
+.modal-message {
+  margin-top:15px;
+  min-height: 50px;
+  text-align: center;
+}
+
+.modal-okcancel {
+  width:250px;
+}
+
+.modal-ok {
+  width:125px;
+}
+
+.modal-ok {
+  width:100px;
+}
+
+.modal-cancel {
+  width:100px;
+}
+
+.modal_title::before,
+.modal_title::after{
+  content: "";
+  position: absolute;
+  bottom: 0;
+}
+
+.modal_title:before{
+  border-bottom: 4px solid #6bb6ff;
+  width: 100%;
+}
+
+.modal_title:after{
+  border-bottom: 4px solid #c8e4ff;
+  width: 100%;
+}
 </style>

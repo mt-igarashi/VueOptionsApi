@@ -153,7 +153,7 @@ export default {
      * 関数概要: GridTableのスタイルを返却します。
      */
     tableStyle: function() {
-      return "height:312px";
+      return "max-height:312px;";
     },
     
     /*
@@ -205,7 +205,7 @@ export default {
         this.daialog = {
           title: this.constants.DeleteConfirmTitle,
           message: this.constants.DeleteConfirmMessage,
-          ok: async () => { await this.instance.deleteMovie(item, value); },
+          ok: async () => { await this.instance.delete(item); },
           cancel: null,
           show: true
         };

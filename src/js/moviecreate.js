@@ -100,7 +100,7 @@ export default class MovieCreate {
    * 関数概要: 映画一覧に遷移します。
    */  
   moveMovieList() {
-    this.vue.$router.push({name: "MovieList", params: {state: ""}});
+    this.vue.$router.push({name: "MovieList", params: {state: "init"}});
   }
   
   /*

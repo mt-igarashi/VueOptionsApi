@@ -1,5 +1,5 @@
 <template>
-  <div class="gridtable-wrapper" :style="tableStyle">
+  <div v-if="items && items.length > 0" class="gridtable-wrapper" :style="tableStyle">
   <table class="gridtable">
     <thead>
       <tr>
@@ -257,6 +257,6 @@ export default {
 
 /* スクロール領域 */
 .gridtable-wrapper {
-  overflow: scroll;
+  overflow: auto;
 }
 </style>
