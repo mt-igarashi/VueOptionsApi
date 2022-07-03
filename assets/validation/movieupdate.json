@@ -1,0 +1,54 @@
+{
+  "validation": [
+   {
+    "field": "title",
+    "rules": [
+    {
+      "type": "required",
+      "name": "タイトル",
+      "message": "COM-0001",
+      "prefix": "movie"
+    }]
+   },
+   {
+    "field": "releaseDate",
+    "rules": [
+    {
+      "type": "required",
+      "name": "公開日",
+      "message": "COM-0001",
+      "prefix": "movie"
+    }]
+   },
+   {
+    "field": "genre",
+    "rules": [
+    {
+      "type": "required",
+      "name": "ジャンル",
+      "message": "COM-0001",
+      "prefix": "movie"
+    }]
+   },
+   {
+    "field": "price",
+    "rules": [
+    {
+      "type": "required",
+      "name": "価格",
+      "message": "COM-0001",
+      "prefix": "movie"
+    }]
+   },
+   {
+    "field": "rating",
+    "rules": [
+    {
+      "type": "required",
+      "name": "評価",
+      "message": "COM-0001",
+      "prefix": "movie"
+    }]
+  }
+ ]
+}
