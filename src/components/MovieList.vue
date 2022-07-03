@@ -56,7 +56,7 @@
                      @header-button-click="headerbuttonclick"
                      @button-click="buttonclick"
                      @link-click="linkclick" />
-          <PagingLink name="MovieList" :total="total" :pageNumber="this.instance.pageNumber()" :pageSize="this.instance.pageSize()" />
+          <PagingLink name="MovieList" :total="total" :pageNumber="instance.pageNumber()" :pageSize="instance.pageSize()" />
         </div>
       </div>
     </template>

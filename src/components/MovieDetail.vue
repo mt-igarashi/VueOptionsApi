@@ -20,7 +20,7 @@
                   公開日
                 </th>
                 <td class="description">
-                  {{this.utils.convertDisplayDate(movie.releaseDate)}}
+                  {{utils.convertDisplayDate(movie.releaseDate)}}
                 </td>
               </tr>
               <tr>
@@ -36,7 +36,7 @@
                   価格
                 </th>
                 <td class="description">
-                  {{this.utils.formatDollars(movie.price)}}
+                  {{utils.formatDollars(movie.price)}}
                 </td>
               </tr>
               <tr>
@@ -56,7 +56,7 @@
       <div class="row">
         <div class="col-12 mt-4">
           <div>
-            <input class="btn btn-primary float-right" type="button" value="戻る" @click="movePrevPage()" />
+            <input class="btn btn-primary float-right" type="button" value="戻る" @click="movePrevPage" />
           </div>
         </div>
       </div>      

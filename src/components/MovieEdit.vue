@@ -55,11 +55,11 @@
       <!-- 更新、閉じるボタン -->
       <div class="row">
         <div class="col-6 mt-4">
-          <input v-show="!messages.errors || messages.errors.length == 0" class="btn btn-primary float-left" type="button" value="更新" @click.prevent="openModal()" />
+          <input v-show="!messages.errors || messages.errors.length == 0" class="btn btn-primary float-left" type="button" value="更新" @click.prevent="openModal" />
         </div>
         <div class="col-6 mt-4">
           <div>
-            <input class="btn btn-primary float-right" type="button" value="閉じる" @click="closePage()" />
+            <input class="btn btn-primary float-right" type="button" value="閉じる" @click="closePage" />
           </div>
         </div>
       </div>
