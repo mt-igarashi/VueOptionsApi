@@ -56,7 +56,7 @@
                      @header-button-click="headerbuttonclick"
                      @button-click="buttonclick"
                      @link-click="linkclick" />
-          <PagingLink name="MovieList" :total="total" :pageNumber="instance.pageNumber()" :pageSize="instance.pageSize()" />
+          <PagingLink name="MovieList" :total="total" :pageNumber="instance.pageNumber()" :pageSize="instance.pageSize()" :linkparams="linkparams" />
         </div>
       </div>
     </template>
@@ -162,6 +162,13 @@ export default {
     columns: function() {
       return this.instance.columns();
     },
+
+    /*
+     * 関数概要: ページングのリンクパラメータを返却します。
+     */
+    linkparams: function() {
+      return {state: "recovery"};
+    }
   },
   
   /*

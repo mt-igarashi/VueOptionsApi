@@ -116,14 +116,14 @@ export default {
         let cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
         if (hcb.checked) {
           hcb.checked = false;
-          cbList.forEach((cb) => {
+          for (const cb of cbList) {
             cb.checked = false;
-          });
+          }
         } else {
           hcb.checked = true;
-          cbList.forEach((cb) => {
+          for (const cb of cbList) {
             cb.checked = true;
-          });
+          }
         }
         this.$emit("header-check-click", event, hcb.checked, this.items, colindex);
       }

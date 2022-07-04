@@ -6,9 +6,9 @@ export default class Validator {
     this.vue = vue;
     this.settings = settings;
     this.messageStore = new Map();
-    this.settings.validation.forEach(x => {
-      this.messageStore.set(x.field, []);
-    });
+    for (const v of this.settings.validation) {
+      this.messageStore.set(v.field, []);
+    }
   }
 
   /*
@@ -80,11 +80,33 @@ export default class Validator {
    */
   validateField(field) {
     let setting = this.getSetting(field);
-    this.messageStore.set(setting.field, []);
-    this.execute(setting);
+    if (!setting) {
+      return;
+    }
+
+    if (setting.list) {
+      let index = Number(this.getIndex(field));
+      let list = this.getVueData(setting.property) ?? [];
+      if (isNaN(index) || list.length < index) {
+        return;
+      }
+      this.messageStore.set(field, []);
+      this.execute(setting, list[index], index);
+    } else {
+      this.messageStore.set(field, []);
+      this.execute(setting);
+    }
     
-    let hasError = this.hasError(setting.field);
-    this.vue.messages = this.ConvertErrorMessage();
+    let hasError = this.hasError(field);
+    if (setting.messageProp) {
+      this.vue[setting.messageProp] = this.ConvertErrorMessage();
+    }
+
+    if (setting.updateflag) {
+      this.vue[setting.updateflag] = Date.now();
+    }
+
+    this.vue.$forceUpdate();
     return !hasError;
   }
 
@@ -92,13 +114,40 @@ export default class Validator {
    * 関数概要: バリデーションを実行します。
    */
   validate() {
-    this.settings.validation.forEach(x => {
-      this.messageStore.set(x.field, []);
-      this.execute(x);
-    });
+    let messageProps = {};
+    let updateflags = {};
+    this.messageStore.clear();
+    for (const v of this.settings.validation) {
+      if (v.messageProp) {
+        messageProps[v.messageProp] = v.messageProp;
+      }
+
+      if (v.updateflag) {
+        updateflags[v.updateflag] = v.updateflag;
+      }
+
+      if (v.list) {
+        let list = this.getVueData(v.property) ?? [];
+        for (let i = 0; i < list.length; i++) {
+          this.execute(v, list[i], i);
+        }
+      } else {
+        this.execute(v);
+      }
+    }
     
     let hasError = this.hasError();
-    this.vue.messages = this.ConvertErrorMessage();
+    let keys = Object.keys(messageProps);
+    for (const key of keys) {
+      this.vue[key] = this.ConvertErrorMessage();
+    }
+
+    keys = Object.keys(updateflags);
+    for (const key of keys) {
+      this.vue[key] = Date.now();
+    }
+
+    this.vue.$forceUpdate();
     return !hasError;
   }
 
@@ -107,7 +156,7 @@ export default class Validator {
    * 引数：field フィールド名
    */
   getErrorMessage(field) {
-    let error = (this.messageStore.get(field) ?? []);
+    let error = this.messageStore.get(field) ?? [];
     return error.length == 0 ? "" : error[0];
   }
 
@@ -116,14 +165,14 @@ export default class Validator {
    * 引数：field フィールド名
    */
   getSetting(field) {
-    let result = null;
-    this.settings.validation.forEach(x => {
-      if (x.field == field) {
-        result = x;
-        return true;
+    let index = Number(this.getIndex(field));
+    let fieldName = isNaN(index) ? field : this.getFieldName(field);
+    for (const v of this.settings.validation) {
+      if (v.field == fieldName) {
+        return v;
       }
-    });
-    return result;
+    }
+    return null;
   }
 
   /*
@@ -135,14 +184,12 @@ export default class Validator {
       return (this.messageStore.get(field) ?? []).length > 0;
     }
 
-    let hasError = false;
-    this.settings.validation.forEach(x => {
-        if ((this.messageStore.get(x.field) ?? []).length > 0) {
-          hasError = true;
-          return true;
-        }
-    });
-    return hasError;
+    for (const [key, value] of this.messageStore) {
+      if (key && value.length > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /*
@@ -151,178 +198,171 @@ export default class Validator {
    */
   ConvertErrorMessage(field) {
     if (field) {
-      return {errors: [], messages: this.messageStore.get(field) ?? []};
+      return {errors: this.messageStore.get(field) ?? [], messages: []};
     }
 
-    let result = [];
-    this.settings.validation.forEach(x => {
-        let messages = this.messageStore.get(x.field) ?? [];
-        result = result.concat(messages);
-    });
-    return {errors: result, messages: []};
+    let error = [];
+    for (let [key, value] of this.messageStore) {
+      if (key) {
+        error = error.concat(value);
+      }
+    }
+    return {errors: error, messages: []};
   }
 
   /*
    * 関数概要: Requiredバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateRequired(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] : null; 
-    if (value) {
+  validateRequired(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if (pairInfo.value || (pairInfo.value == typeof Number && pairInfo.value == 0)) {
       return;
     }
 
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name);
-    let messages = this.messageStore.get(setting.field) ?? [];
+    message = this.formatMessage(message, setting.name);
+
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
-    
-    this.messageStore.set(setting.field, messages);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Minバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateMin(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] : null;  
-    if (value >= rule.value) {
+  validateMin(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if (pairInfo.value >= Number(rule.value)) {
       return;
     }
 
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.value);
-    let messages = this.messageStore.get(setting.field) ?? [];
-    messages.push(message);
+    message = this.formatMessage(message, setting.name, rule.value);
 
-    this.messageStore.set(setting.field, messages);
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
+    messages.push(message);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Maxバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateMax(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] : null;  
-    if (value <= rule.value) {
+  validateMax(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if (pairInfo.value <= Number(rule.value)) {
       return;
     }
-    
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.value);
-    let messages = this.messageStore.get(setting.field) ?? [];
-    messages.push(message);
 
-    this.messageStore.set(setting.field, messages);
+    let message = this.getCommonMessage(rule.message);
+    message = this.formatMessage(message, setting.name, rule.value);
+    
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
+    messages.push(message);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: MinLengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateMinLength(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] ?? "" : ""; 
-    if (value.length >= rule.value) {
+  validateMinLength(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if ((pairInfo.value ?? "").length >= rule.value) {
       return;
     }
 
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.value);
-    let messages = this.messageStore.get(setting.field) ?? [];
+    message = this.formatMessage(message, setting.name, rule.value);
+    
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
-
-    this.messageStore.set(setting.field, messages);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: MaxLengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateMaxLength(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] ?? "" : ""; 
-    if (value.length <= rule.value) {
+  validateMaxLength(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if ((pairInfo.value ?? "").length <= rule.value) {
       return;
     }
 
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.value);
-    let messages = this.messageStore.get(setting.field) ?? [];
+    message = this.formatMessage(message, setting.name, rule.value);
+    
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
-
-    this.messageStore.set(setting.field, messages);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Lengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateLength(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] ?? "" : ""; 
-    if (value.length >= rule.min && value.length <= rule.max) {
+  validateLength(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if ((pairInfo.value ?? "").length >= rule.min && (pairInfo.value ?? "").length <= rule.max) {
       return;
     }
 
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.min, rule.max);
-    let messages = this.messageStore.get(setting.field) ?? [];
+    message = this.formatMessage(message, setting.name, rule.min, rule.max);
+    
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
-
-    this.messageStore.set(setting.field, messages);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Rangeバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateRange(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] : null; 
-    if (value >= rule.min && value <= rule.max) {
+  validateRange(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    if (pairInfo.value >= Number(rule.min) && pairInfo.value <= Number(rule.max)) {
       return;
     }
 
-    let message = this.getCommonMessage(setting.message);
-    message = this.formatMessage(message, rule.name, rule.min, rule.max);
-    let messages = this.messageStore.get(setting.field) ?? [];
-    messages.push(message);
+    let message = this.getCommonMessage(rule.message);
+    message = this.formatMessage(message, setting.name, rule.min, rule.max);
 
-    this.messageStore.set(setting.field, messages);
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
+    messages.push(message);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Regexバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateRegex(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let value = entity ? entity[setting.field] ?? "" : ""; 
+  validateRegex(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
     let re = new RegExp(rule.value);
-    if (re.test(value)) {
+    if (re.test((pairInfo.value ?? ""))) {
       return;
     }
 
-    let messages = this.messageStore.get(setting.field) ?? [];
-    messages.push(message);
     let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, rule.name, rule.value);
+    message = this.formatMessage(message, setting.name, rule.value);
     
-    this.messageStore.set(setting.field, messages);
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
+    messages.push(message);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: Compareバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール
+   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
    */
-  validateCompare(setting, rule) {
-    let entity = this.vue[rule.prefix];
-    let arg1 = entity ? entity[setting.field] : null; 
-    let arg2 = entity ? entity[rule.target] : null; 
+  validateCompare(setting, rule, item, index) {
+    let pairInfo = this.getPairInfo(setting, rule, item, index);
+    let arg1 = pairInfo.value; 
+    let arg2 = pairInfo.target; 
     let method = rule.method ?? 0;
     let type = rule.type ?? "";
 
@@ -330,114 +370,101 @@ export default class Validator {
       return;
     }
 
-    if (type.ToLower() == "date") {
-        arg1 = arg1 ? arg1.getTime() : 0;
-        arg2 = arg2 ? arg2.getTime() : 0;
+    if (type.ToLower().includes("date")) {
+        arg1 = arg1 ? arg1.getTime() : null;
+        arg2 = arg2 ? arg2.getTime() : null;
     }
 
-    if (method == -1) {
-      if (arg1 >= arg2) {
-        let message = this.getCommonMessage(rule.message);
-        message = this.formatMessage(message, rule.name, arg1, arg2);
-        let messages = this.messageStore.get(setting.field) ?? [];
-        messages.push(message);
+    let message = this.getCommonMessage(rule.message);
+    message = this.formatMessage(message, setting.name, arg1, arg2);
 
-        this.messageStore.set(setting.field, messages);
-        return;
+    if (method == -1) {
+      if (type.ToLower().includes("equal")) {
+        if (arg1 <= arg2) {    
+          return true;
+        }
+      } else {
+        if (arg1 < arg2) {    
+          return true;
+        }
       }
     }
 
     if (method == 0) {
-      if (arg1 != arg2) {
-        let message = this.getCommonMessage(setting.message);
-        message = this.formatMessage(message, setting.name, arg1, arg2);
-        let messages = this.messageStore.get(setting.field) ?? [];
-        messages.push(message);
-
-        this.messageStore.set(setting.field, messages);
-        return;
+      if (arg1 == arg2) {
+        return true;
       }
     }
 
     if (method == 1) {
-      if (arg1 <= arg2) {
-        let message = this.getCommonMessage(setting.message);
-        message = this.formatMessage(message, setting.name, arg1, arg2);
-        let messages = this.messageStore.get(setting.field) ?? [];
-        messages.push(message);
-
-        this.messageStore.set(setting.field, messages);
+      if (type.ToLower().includes("equal")) {
+        if (arg1 >= arg2) {
+          return true;
+        }
+      } else {
+        if (arg1 > arg2) {
+          return true;
+        }
       }
     }
-  }
 
-  /*
-   * 関数概要: メッセージをフォーマットします。
-   * 引数：message エラーメッセージ、args 置換文字列
-   */
-  formatMessage(message, ...args) {
-    let result = message;
-    for (let i = 0; i < args.length; i++) {
-        let target = `{${i}}`;
-        if (message.includes(target)) {
-            result = result.replaceAll(target, args[i]);
-        }
-    }
-    return result;
+    let messages = this.messageStore.get(pairInfo.fieldName) ?? [];
+    messages.push(message);
+    this.messageStore.set(pairInfo.fieldName, messages);
   }
 
   /*
    * 関数概要: バリデーションを実行します。
-   * 引数：setting validation定義
+   * 引数：setting validation定義、item アイテム、index インデックス
    */
-  execute(setting) {
-    setting.rules.forEach(x => {
-      switch(x.type) {
+  execute(setting, item, index)  {
+    for (const rule of setting.rules) {
+      switch(rule.type) {
         case "required": {
-          this.validateRequired(setting, x);
+          this.validateRequired(setting, rule, item, index);
           break;
         }
         case "min": {
-          this.validateMin(setting, x);
+          this.validateMin(setting, rule, item, index);
           break;
         }
         case "max": {
-          this.validateMax(setting, x);
+          this.validateMax(setting, rule, item, index);
           break;
         }
         case "minlength": {
-          this.validateMinLength(setting, x);
+          this.validateMinLength(setting, rule, item, index);
           break;
         }
         case "maxlength": {
-          this.validateMaxLength(setting, x);
+          this.validateMaxLength(setting, rule, item, index);
           break;
         }
         case "length": {
-          this.validateLength(setting, x);
+          this.validateLength(setting, rule, item, index);
           break;
         }
         case "range": {
-          this.validateRange(setting, x);
+          this.validateRange(setting, rule, item, index);
           break;
         }
         case "regex": {
-          this.validateRegex(setting, x);
+          this.validateRegex(setting, rule, item, index);
           break;
         }
         case "compare": {
-          this.validateCompare(setting, x);
+          this.validateCompare(setting, rule, item, index);
           break;
         }
         default: {
           console.log("validation type can't be matched")
         }
       }
-    });
+    }
   }
 
   /*
-   * 関数概要: バリデーションを実行します。
+   * 関数概要: バリデーション共通メッセージを取得します。
    * 引数：message エラーメッセージ
    */
   getCommonMessage(message) {
@@ -468,5 +495,98 @@ export default class Validator {
       }
     }
     return message;
+  }
+
+  /*
+   * 関数概要: プロパティの値とフィールド名を返却します。
+   * 引数：setting validation定義、rule ルール、item アイテム、index インデックス
+   */
+  getPairInfo(setting, rule, item, index) {
+    let value;
+    let target;
+    let fieldName;
+    if (item) {
+      value = item[setting.field];
+      if (rule.target) {
+        target = item[rule.target];
+      }
+      fieldName = this.getIndexedFieldName(setting.field, index);
+    } else {
+      value = this.getVueData(setting.field, setting.property);
+      if (rule.target) {
+        target = this.getVueData(rule.target, setting.property);
+      }
+      fieldName = setting.field;
+    }
+
+    return { value: value, target: target, fieldName: fieldName };
+  }
+
+  /*
+   * 関数概要: フィールド名を返却します。
+   * 引数：field フィールド名
+   */
+  getFieldName(field) {
+    let index = Number(this.getIndex(field));
+    if (isNaN(index)) {
+      return field;
+    }
+    let list = field.split("_");
+    return list.slice(0, index.length - 2).join("_");
+  }
+
+  /*
+   * 関数概要: フィールド名を返却します。
+   * 引数：field フィールド名、index インデックス
+   */
+  getIndexedFieldName(field, index) {
+    if (index == null || index == typeof undefined) {
+      return field;
+    }
+    return `${field}_${index}`;
+  }
+
+  /*
+   * 関数概要: フィールド名からインデックスを返却します。
+   * 引数：field フィールド名
+   */
+  getIndex(field) {
+    if (!field) {
+      return null;
+    }
+    let index = field.split("_");
+    return index[index.length - 1];
+  }
+
+  /*
+   * 関数概要: Vueコンポーネントが保持しているデータを返却します。
+   * 引数：property プロパティ名、prefix プレフィックス
+   */
+  getVueData(property, prefix) {
+    if (!prefix) {
+      return this.vue[property];
+    }
+    
+    let data = this.vue[prefix];
+    if (!data) {
+      return null;
+    }
+    
+    return data[property];
+  }
+
+  /*
+   * 関数概要: メッセージをフォーマットします。
+   * 引数：message エラーメッセージ、args 置換文字列
+   */
+  formatMessage(message, ...args) {
+    let result = message;
+    for (let i = 0; i < args.length; i++) {
+        let target = `{${i}}`;
+        if (message.includes(target)) {
+            result = result.replaceAll(target, args[i]);
+        }
+    }
+    return result;
   }
 }

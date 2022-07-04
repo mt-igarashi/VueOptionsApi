@@ -1,30 +1,13 @@
 <template>
   <div v-if="total > 0" class="nav-links">
-    <template v-if="prevPegeSize > 0">
-      <template v-if="prevPegeSize < total">
-        <a class="prev page-numbers" href="#" @click.prevent="reloadPage(pageNumber - 1, pageSize)">«</a>
-      </template>
-      <template v-else>
-        <a class="prev page-numbers" href="#" @click.prevent="">«</a>
-      </template>
-    </template>
-    <template v-else>
-      <a class="prev page-numbers" href="#" @click.prevent="">«</a>
-    </template>
+    <a v-if="prevPegeSize > 0 && prevPegeSize < total" class="prev page-numbers" href="#" @click.prevent="reloadPage(pageNumber - 1, pageSize)">«</a>
+    <a v-else class="prev page-numbers" href="#" @click.prevent="">«</a>
     <template v-for="status in totalPage" :key="status.id">
-      <template v-if="status.number == pageNumber">
-        <span class="page-numbers current">{{status.number + 1}}</span>
-      </template>
-      <template v-else>
-        <a class="page-numbers" href="#" @click.prevent="reloadPage(status.number, pageSize)">{{status.number + 1}}</a>
-      </template>
+      <span v-if="status.number == pageNumber" class="page-numbers current">{{status.number + 1}}</span>
+      <a v-else class="page-numbers" href="#" @click.prevent="reloadPage(status.number, pageSize)">{{status.number + 1}}</a>
     </template>
-    <template v-if="nextPegeSize < total">
-      <a class="page-numbers" href="#" @click.prevent="reloadPage(pageNumber + 1, pageSize)">»</a>
-    </template>
-    <template v-else>
-      <a class="next page-numbers" href="#" @click.prevent="">»</a>
-    </template>
+    <a v-if="nextPegeSize < total" class="page-numbers" href="#" @click.prevent="reloadPage(pageNumber + 1, pageSize)">»</a>
+    <a v-else class="next page-numbers" href="#" @click.prevent="">»</a>
   </div>
 </template>
 
@@ -47,6 +30,9 @@ export default {
     name: {
       required: true,
       type: String
+    },
+    linkparams: {
+      type: Object
     }
   },
   computed: {
@@ -67,7 +53,8 @@ export default {
   },
   methods: {
     reloadPage: function(page, size) {
-      this.$router.push({name: this.name, params: {state: 'recovery'}, query: {pageNumber: page, pageSize: size}});
+      let params = this.linkparams ?? {};
+      this.$router.push({name: this.name, params: params, query: {pageNumber: page, pageSize: size}});
     }
   }
 }

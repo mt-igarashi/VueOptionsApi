@@ -12,8 +12,8 @@
                   タイトル
                 </th>
                 <td class="description">
-                  <input type="text" v-model="movie.title" @input="validator.validateField('title')"/>
-                  <div v-if="validator.hasError('title')" class="alert alert-danger field-error">{{validator.getErrorMessage('title')}}</div>
+                  <input type="text" v-model="movie.title" @input="validator.validateField('title')">
+                  <div v-if="updateflg && validator.hasError('title')" class="alert alert-danger error-msg">{{validator.getErrorMessage('title')}}</div>
                 </td>
               </tr>
               <tr>
@@ -22,7 +22,7 @@
                 </th>
                 <td class="description">
                   <input type="date" v-model="movie.releaseDate" @input="validator.validateField('releaseDate')">
-                  <div v-if="validator.hasError('releaseDate')" class="alert alert-danger field-error">{{validator.getErrorMessage('releaseDate')}}</div>
+                  <div v-if="updateflg && validator.hasError('releaseDate')" class="alert alert-danger error-msg">{{validator.getErrorMessage('releaseDate')}}</div>
                 </td>
               </tr>
               <tr>
@@ -31,7 +31,7 @@
                 </th>
                 <td class="description">
                   <input type="text" v-model="movie.genre" @input="validator.validateField('genre')">
-                  <div v-if="validator.hasError('genre')" class="alert alert-danger field-error">{{validator.getErrorMessage('genre')}}</div>
+                  <div v-if="updateflg && validator.hasError('genre')" class="alert alert-danger error-msg">{{validator.getErrorMessage('genre')}}</div>
                 </td>
               </tr>
               <tr>
@@ -40,7 +40,7 @@
                 </th>
                 <td class="description">
                   <input type="text" v-model="movie.price" @input="validator.validateField('price')">
-                  <div v-if="validator.hasError('price')" class="alert alert-danger field-error">{{validator.getErrorMessage('price')}}</div>
+                  <div v-if="updateflg && validator.hasError('price')" class="alert alert-danger error-msg">{{validator.getErrorMessage('price')}}</div>
                 </td>
               </tr>
               <tr>
@@ -49,7 +49,7 @@
                 </th>
                 <td class="description">
                   <input type="text" v-model="movie.rating" @input="validator.validateField('rating')">
-                  <div v-if="validator.hasError('rating')" class="alert alert-danger field-error">{{validator.getErrorMessage('rating')}}</div>
+                  <div v-if="updateflg && validator.hasError('rating')" class="alert alert-danger error-msg">{{validator.getErrorMessage('rating')}}</div>
                 </td>
               </tr>
             </tbody>
@@ -110,7 +110,8 @@ export default {
       movie: {},         // 映画エンティティ
       messages: {},      // メッセージ
       loading: false,    // ローディング表示用フラグ
-      daialog: {}        // ダイアログパラメータ
+      daialog: {},       // ダイアログパラメータ
+      updateflg: false   // バリデーションエラー更新用フラグ
     }
   },
   

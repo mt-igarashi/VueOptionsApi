@@ -2,7 +2,7 @@ import axios from "axios"
 import constants from '../js/constants'
 import utils from '../js/utils'
 import validator from '../js/validator'
-import movieupdate from '../assets/validation/movieupdate.json'
+import movieupdate from '../assets/validation/movieupdate'
 
 /*
  * クラス概要: 映画作成ロジックを担当するクラス
