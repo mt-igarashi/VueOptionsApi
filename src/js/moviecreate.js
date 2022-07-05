@@ -1,6 +1,8 @@
 import axios from "axios"
 import constants from '../js/constants'
 import utils from '../js/utils'
+import validator from '../js/validator'
+import movieupdate from '../assets/validation/movieupdate'
 
 /*
  * クラス概要: 映画作成ロジックを担当するクラス
@@ -14,6 +16,7 @@ export default class MovieCreate {
     this.vue = vue;
     this.utils = utils.instance;
     this.constants = constants.instance;
+    this.validator = new validator(this.vue, movieupdate);
   }
   
   /*
@@ -33,35 +36,51 @@ export default class MovieCreate {
   }
   
   /*
-   * 関数概要: Utilsクラスを返却します。
-   * 戻り値：Utilsクラス
+   * 関数概要: Utilsを返却します。
+   * 戻り値：Utils
    */
   get getUtils() {
     return this.utils;
   }
   
   /*
-   * 関数概要: Utilsクラスを設定します。
-   * 引数：utils Utilsクラス
+   * 関数概要: Utilsを設定します。
+   * 引数：utils Utils
    */
   set setUtils(utils) {
       this.utils = utils;
   }
   
   /*
-   * 関数概要: Constantsクラスを返却します。
-   * 戻り値：Constantsクラス
+   * 関数概要: Constantsを返却します。
+   * 戻り値：Constants
    */
   get getConstants() {
     return this.constants;
   }
   
   /*
-   * 関数概要: Constantsクラスを設定します。
-   * 引数：constants Constantsクラス
+   * 関数概要: Constantsを設定します。
+   * 引数：constants Constants
    */
   set setConstants(constants) {
       this.constants = constants;
+  }
+
+  /*
+   * 関数概要: Validatorを返却します。
+   * 戻り値：Validator
+   */
+  get getValidator() {
+    return this.validator;
+  }
+  
+  /*
+   * 関数概要: Validatorを設定します。
+   * 引数：constants Validator
+   */
+  set setValidator(validator) {
+      this.validator = validator;
   }
   
   /*
@@ -79,7 +98,7 @@ export default class MovieCreate {
       Rating: this.vue.movie.rating
     })
     .then((response) => {
-      var data = response.data;
+      const data = response.data;
       if (!data.result) {
         console.log("登録失敗");
         this.vue.messages = this.utils.createErrorMessage(this.constants.DbUpdateFailed);
@@ -107,7 +126,7 @@ export default class MovieCreate {
    * 関数概要: 映画一覧に遷移します。
    */
   movePrevPage() {
-    let mscond = this.vue.$store.state.mscond;
+    const mscond = this.vue.$store.state.mscond;
     this.vue.$router.push({name: "MovieList", params: {state: "recovery"}, query: {pageNumber: mscond.pageNumber, pageSize: mscond.pageSize}});
   }
 }

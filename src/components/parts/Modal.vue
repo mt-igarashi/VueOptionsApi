@@ -64,7 +64,6 @@ export default {
       if (type == "ok") {
         let ok = params.ok ?? function() {};
         if (this.utils.isAsync(ok)) {
-          console.log("async executed");
           await ok();
         } else {
           ok();

@@ -116,14 +116,14 @@ export default {
         let cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
         if (hcb.checked) {
           hcb.checked = false;
-          cbList.forEach((cb) => {
+          for (const cb of cbList) {
             cb.checked = false;
-          });
+          }
         } else {
           hcb.checked = true;
-          cbList.forEach((cb) => {
+          for (const cb of cbList) {
             cb.checked = true;
-          });
+          }
         }
         this.$emit("header-check-click", event, hcb.checked, this.items, colindex);
       }
@@ -146,6 +146,10 @@ export default {
       
       if (column.type == "link") {
         this.$emit("link-click", event, this.items[rowindex], rowindex, colindex);
+      }
+
+      if (column.type == "button") {
+        this.$emit("button-click", event, this.items[rowindex], "", rowindex, colindex);
       }
       
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
@@ -258,5 +262,9 @@ export default {
 /* スクロール領域 */
 .gridtable-wrapper {
   overflow: auto;
+}
+
+.gridtable ~ button, input, select, a {
+  z-index: 3;
 }
 </style>

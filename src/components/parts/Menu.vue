@@ -27,7 +27,7 @@ export default {
   name: "Menu",
   methods: {
     toggleClicked: function() {
-      var elem = document.querySelector("#navbarNavAltMarkup");
+      const elem = document.querySelector("#navbarNavAltMarkup");
       elem.classList.toggle("collapse");
     }
   }

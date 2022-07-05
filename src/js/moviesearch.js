@@ -33,32 +33,32 @@ export default class MovieSearch {
   }
   
   /*
-   * 関数概要: Utilsクラスを返却します。
-   * 戻り値：Utilsクラス
+   * 関数概要: Utilsを返却します。
+   * 戻り値：Utils
    */
   get getUtils() {
     return this.utils;
   }
   
   /*
-   * 関数概要: Utilsクラスを設定します。
-   * 引数：utils Utilsクラス
+   * 関数概要: Utilsを設定します。
+   * 引数：utils Utils
    */
   set setUtils(utils) {
       this.utils = utils;
   }
   
   /*
-   * 関数概要: Constantsクラスを返却します。
-   * 戻り値：Constantsクラス
+   * 関数概要: Constantsを返却します。
+   * 戻り値：Constants
    */
   get getConstants() {
     return this.constants;
   }
   
   /*
-   * 関数概要: Constantsクラスを設定します。
-   * 引数：constants Constantsクラス
+   * 関数概要: Constantsを設定します。
+   * 引数：constants Constants
    */
   set setConstants(constants) {
       this.constants = constants;
@@ -78,7 +78,7 @@ export default class MovieSearch {
     this.setParams(to);
     
     if (this.vue.params.state == "recovery") {
-      let mscond = this.vue.$store.state.mscond;
+      const mscond = this.vue.$store.state.mscond;
       this.vue.genre = mscond.movieGenre;
       this.vue.searchString = mscond.searchString;
     } else if (!this.vue.params.state || this.vue.params.state == "init") {
@@ -94,7 +94,7 @@ export default class MovieSearch {
    */
   reload(init = false) {
     if (init) {
-      let param = {
+      const param = {
         movieGenre: this.vue.genre,
         searchString: this.vue.searchString,
         pageNumber: this.constants.DefaultPageNumber,
@@ -111,10 +111,10 @@ export default class MovieSearch {
    * 関数概要: 映画を検索します。
    */
   async search() {
-    this.vue.messages = this.utils.createErrorMessage();
+    this.vue.messages = this.utils.createMessage();
     this.utils.startLoading(this.vue);
     
-    let param = {
+    const param = {
         movieGenre: this.vue.genre,
         searchString: this.vue.searchString,
         pageNumber: this.pageNumber(),
@@ -126,7 +126,7 @@ export default class MovieSearch {
       params: param
     })
     .then((response) => {
-      var data = response.data;
+      const data = response.data;
       if (data.result.genres.lenght == 0 || data.result.movies.length == 0) {
         this.vue.movies = [];
         this.vue.total = 0;
@@ -140,6 +140,7 @@ export default class MovieSearch {
     .catch((error) => {
       console.log(error);
       this.vue.movies = [];
+      this.vue.total = 0;
       this.vue.messages = this.utils.createErrorMessage(this.constants.SystemError);
     })
     .finally(() => {
@@ -152,10 +153,10 @@ export default class MovieSearch {
    * 関数概要: 映画を削除します。
    */
   async delete(item) {
-    this.vue.messages = this.utils.createErrorMessage();
+    this.vue.messages = this.utils.createMessage();
     this.utils.startLoading(this.vue);
     
-    let param = {
+    const param = {
         id: item.id,
     };
     
@@ -164,7 +165,7 @@ export default class MovieSearch {
       params: param
     })
     .then((response) => {
-      var data = response.data;
+      const data = response.data;
       if (!data.result) {
         this.vue.messages = this.utils.createErrorMessage(this.constants.DbUpdateFailed);
         return;
@@ -195,7 +196,6 @@ export default class MovieSearch {
    * 引数：item 映画
    */
   moveDetail(item) {
-    this.vue.messages = this.utils.createErrorMessage();
     this.vue.$router.push({ name: "MovieDetail", params: {id: item.id}});
   }
   
@@ -204,7 +204,8 @@ export default class MovieSearch {
    * 引数：item 映画
    */
   openEdit(item) {
-    let route = this.vue.$router.resolve({
+    this.vue.messages = this.utils.createMessage();
+    const route = this.vue.$router.resolve({
       name: "MovieEdit",
       params: {id: item.id}
     });

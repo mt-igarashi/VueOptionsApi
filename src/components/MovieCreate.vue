@@ -12,7 +12,11 @@
                   タイトル
                 </th>
                 <td class="description">
-                  <input type="text" v-model="movie.title" />
+                  <FieldValidator field="title" :validator="validator">
+                    <template v-slot:control="slotProps">
+                      <input id="title" type="text" v-model="movie.title" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                    </template>
+                  </FieldValidator>
                 </td>
               </tr>
               <tr>
@@ -20,7 +24,11 @@
                   公開日
                 </th>
                 <td class="description">
-                  <input type="date" v-model="movie.releaseDate">
+                  <FieldValidator field="releaseDate" :validator="validator">
+                    <template v-slot:control="slotProps">
+                      <input type="date" v-model="movie.releaseDate" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                    </template>
+                  </FieldValidator>
                 </td>
               </tr>
               <tr>
@@ -28,7 +36,11 @@
                   ジャンル
                 </th>
                 <td class="description">
-                  <input type="text" v-model="movie.genre">
+                  <FieldValidator field="genre" :validator="validator">
+                    <template v-slot:control="slotProps">
+                      <input id="genre" type="text" v-model="movie.genre" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                    </template>
+                  </FieldValidator>
                 </td>
               </tr>
               <tr>
@@ -36,7 +48,11 @@
                   価格
                 </th>
                 <td class="description">
-                  <input type="text" v-model="movie.price">
+                  <FieldValidator field="price" :validator="validator">
+                    <template v-slot:control="slotProps">
+                      <input id="price" type="text" v-model="movie.price" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                    </template>
+                  </FieldValidator>
                 </td>
               </tr>
               <tr>
@@ -44,7 +60,11 @@
                   評価
                 </th>
                 <td class="description">
-                  <input type="text" v-model="movie.rating">
+                  <FieldValidator field="rating" :validator="validator">
+                    <template v-slot:control="slotProps">
+                      <input id="rating" type="text" v-model="movie.rating" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                    </template>
+                  </FieldValidator>
                 </td>
               </tr>
             </tbody>
@@ -129,6 +149,13 @@ export default {
     constants: function() {
       return this.instance.getConstants;
     },
+
+    /*
+     * 関数概要: Validatorクラスのインスタンスを返却します。
+     */
+    validator: function() {
+      return this.instance.getValidator;
+    },
     
     /*
      * 関数概要: メイン要素のスタイルを返却します。
@@ -161,6 +188,10 @@ export default {
      * 関数概要: 確認ダイアログを開きます。
      */    
     openModal: function() {
+      if (!this.validator.validate()) {
+        return;
+      }
+
       this.daialog = {
         title: this.constants.RegisterConfirmTitle,
         message: this.constants.RegisterConfirmMessage,
@@ -181,5 +212,21 @@ export default {
 
 .condition .description {
   width: 525px;
+}
+
+#title {
+  width: 400px;
+}
+
+#genre {
+  width: 300px;
+}
+
+#price {
+  width: 100px;
+}
+
+#rating {
+  width: 100px;
 }
 </style>

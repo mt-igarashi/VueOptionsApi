@@ -1,3 +1,5 @@
+import { createStore } from 'vuex'
+
 export default class Utils {
   static #counter = 0;
   static instance = new Utils();
@@ -66,6 +68,11 @@ export default class Utils {
     if (!message) {
       return {errors: [], messages: []};
     }
+
+    if (Array.isArray(message)) {
+      return {errors: [], messages: message};
+    }
+
     return {errors: [], messages: [message]};
   }
   
@@ -78,25 +85,12 @@ export default class Utils {
     if (!error) {
       return {errors: [], messages: []};
     }
+
+    if (Array.isArray(error)) {
+      return {errors: error, messages: []};
+    }
+
     return {errors: [error], messages: []};
-  }
-  
-  /*
-   * 関数概要: モーダル表示用パラメータを生成します。
-   * 引数：title タイトル
-   *       message メッセージ
-   *       ok OKボタン押下時メソッド
-   *       cancel Cancelボタン押下時メソッド
-   * 戻り値：メッセージ
-   */
-  createDaialogParameter(title, message, ok, cancel, show) {
-    return {
-      title: title,
-      message: message,
-      ok: ok,
-      cancel: cancel,
-      show: show
-    };
   }
   
   /*
@@ -104,10 +98,10 @@ export default class Utils {
    * 引数：vue Vueコンポーネント
    */
   startLoading(vue) {
-    var elems = document.querySelectorAll("button, a");
-    elems.forEach((elem) => {
+    const elems = document.querySelectorAll("button, a");
+    for (const elem of elems) {
       elem.style["pointer-events"] = "none";
-    });
+    }
     vue.loading = true;
   }
   
@@ -116,11 +110,47 @@ export default class Utils {
    * 引数：vue Vueコンポーネント
    */
   stopLoading(vue) {
-    var elems = document.querySelectorAll("button, a");
-    elems.forEach((elem) => {
+    const elems = document.querySelectorAll("button, a");
+    for (const elem of elems) {
       elem.style["pointer-events"] = "auto";
-    });
+    }
     vue.loading = false;
+  }
+
+  /*
+   * 関数概要: VuexStoreを生成します。
+   */
+  createVuexStore() {
+    return createStore({
+      state: {
+        mscond: {}
+      },
+      mutations: {
+        movieSearch: function(proxy, param) {
+           proxy.mscond = param;
+        }
+      },
+      actions: {
+        movieSearch: function({commit}, param) {
+          commit("movieSearch", param);
+        }
+      }
+    })
+  }
+
+  /*
+   * 関数概要: コンポーネントを読み込み、グローバルコンポーネントとして登録します。
+   */
+  loadComponents(app) {
+    const files = require.context("../components/parts", true, /\.vue$/);
+    const components = {};
+    files.keys().forEach(key => {
+      components[key.replace(/(\.\/|\.vue)/g, "")] = files(key).default;
+    });
+    
+    Object.keys(components).forEach(key => {
+      app.component(key, components[key]);
+    });
   }
 
   /*
@@ -142,8 +172,8 @@ export default class Utils {
    * 引数：args ログ出力する変数
    */
   console(...args) {
-    args.forEach((arg) => {
+    for (const arg of args) {
       console.log(arg);
-    });
+    }
   }
 }

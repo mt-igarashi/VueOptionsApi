@@ -33,24 +33,24 @@ export default class MovieDetail {
   }
   
   /*
-   * 関数概要: Utilsクラスを返却します。
-   * 戻り値：Utilsクラス
+   * 関数概要: Utilsを返却します。
+   * 戻り値：Utils
    */
   get getUtils() {
     return this.utils;
   }
   
   /*
-   * 関数概要: Utilsクラスを設定します。
-   * 引数：utils Utilsクラス
+   * 関数概要: Utilsを設定します。
+   * 引数：utils Utils
    */
   set setUtils(utils) {
       this.utils = utils;
   }
   
   /*
-   * 関数概要: Constantsクラスを返却します。
-   * 戻り値：Constantsクラス
+   * 関数概要: Constantsを返却します。
+   * 戻り値：Constants
    */
   get getConstants() {
     return this.constants;
@@ -82,7 +82,7 @@ export default class MovieDetail {
       }
     })
     .then((response) => {
-      var data = response.data;
+      const data = response.data;
       if (!data.result) {
         this.vue.messages = this.utils.createErrorMessage(this.constants.DataNotExist);
         return;
@@ -102,7 +102,7 @@ export default class MovieDetail {
    * 関数概要: 映画一覧に遷移します。
    */
   movePrevPage() {
-    let mscond = this.vue.$store.state.mscond;
+    const mscond = this.vue.$store.state.mscond;
     this.vue.$router.push({name: "MovieList", params: {state: "recovery"}, query: {pageNumber: mscond.pageNumber, pageSize: mscond.pageSize}});
   }
 }
