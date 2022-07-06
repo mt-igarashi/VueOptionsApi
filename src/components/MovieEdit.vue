@@ -89,7 +89,6 @@
 
 <script>
 import movieedit from '../js/movieedit'
-import FieldValidator from './parts/FieldValidator.vue';
 
 export default {
   /*
@@ -103,8 +102,7 @@ export default {
    * (対象コンポーネントがグローバル登録されていない場合に使う)
    */
   components: {
-    FieldValidator
-},
+  },
   
   /*
    * 概要: プロパティ
@@ -127,8 +125,7 @@ export default {
       movie: {},         // 映画エンティティ
       messages: {},      // メッセージ
       loading: false,    // ローディング表示用フラグ
-      daialog: {},       // ダイアログパラメータ
-      updateFlg: ""      // エラーメッセージ更新用
+      daialog: {}        // ダイアログパラメータ
     }
   },
   

@@ -8,8 +8,10 @@
             :style="getStyle(column)"
             @click.prevent="headerclick($event, index)">
           <template v-if="column.headertype == 'checkbox'">
-            <input class="gridhcb"
-                   type="checkbox"
+            <input type="checkbox"
+                   :id="getGridHcbName(`0${index}`)"
+                   :name="getGridHcbName(index)"
+                   class="gridhcb"
                    @change.prevent="headercheckclick($event, index)">
           </template>
           <template v-else-if="column.headertype == 'button'">
@@ -36,9 +38,10 @@
             :style="getStyle(column)"
             @click.prevent="cellclick($event, rowindex, colindex)">
           <template v-if="column.type == 'checkbox'">
-            <input class="gridcb"
-                   type="checkbox"
-                   :name="getGridCbName(colindex)"
+            <input type="checkbox"
+                   :id="getGridCbName(`${rowindex}${colindex}`)"
+                   :name="getGridCbName(`${colindex}`)"
+                   class="gridcb"
                    @change.prevent="checkclick($event, rowindex, colindex)">
           </template>
           <template v-else-if="column.type == 'button'">
@@ -89,6 +92,9 @@ export default {
        let cl = "";
        if (column.frozen) {
          cl = "frozen-header";
+         if (column.type == "checkbox") {
+           cl += " frozen-checkbox"
+         }
        }
        return [cl, column.class];
     },
@@ -96,6 +102,9 @@ export default {
        let cl = "";
        if (column.frozen) {
          cl = "frozen-column";
+         if (column.type == "checkbox") {
+           cl += " frozen-checkbox"
+         }
        }
        return [cl, column.class];
     },
@@ -106,13 +115,16 @@ export default {
        }
        return [style, column.style];
     },
+    getGridHcbName: function(colindex) {
+      return `gridhcb${colindex}`;
+    },
     getGridCbName: function(colindex) {
       return `gridcb${colindex}`;
     },
     headerclick: function(event, colindex) {
-      var column = this.columns[colindex];
+      const column = this.columns[colindex];
       if (column.headertype == "checkbox") {
-        let hcb = event.target.querySelector(".gridhcb");
+        let hcb = document.querySelector(`#${this.getGridHcbName(`0${colindex}`)}`);
         let cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
         if (hcb.checked) {
           hcb.checked = false;
@@ -133,9 +145,10 @@ export default {
       this.$emit("row-click", event, this.items[rowindex], rowindex);
     },
     cellclick: function(event, rowindex, colindex) {
-      var column = this.columns[colindex];
+      const column = this.columns[colindex];
       if (column.type == "checkbox") {
-        let cb = event.target.querySelector(".gridcb");
+        let cb = document.querySelector(`#${this.getGridCbName(`${rowindex}${colindex}`)}`);
+        console.log(cb);
         if (cb.checked) {
           cb.checked = false;
         } else {
@@ -143,15 +156,6 @@ export default {
         }
         this.$emit("check-click", event, cb.checked, this.items[rowindex], rowindex, colindex);
       }
-      
-      if (column.type == "link") {
-        this.$emit("link-click", event, this.items[rowindex], rowindex, colindex);
-      }
-
-      if (column.type == "button") {
-        this.$emit("button-click", event, this.items[rowindex], "", rowindex, colindex);
-      }
-      
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
     },
     headercheckclick: function(event, colindex) {
@@ -188,10 +192,11 @@ export default {
   background:#005baa;
   font-weight: bold;
   color:#fff;
-  padding: 6px;
+  padding: 7px 6px 6px 6px;
   position: -webkit-sticky;
   position: sticky;
   top: 0;
+  border: 1px solid #eee;
   z-index: 1;
 }
 
@@ -216,31 +221,29 @@ export default {
 }
 
 /* ヘッダー枠線 */
-.gridtable thead th::before {
+.gridtable thead .frozen-checkbox::before {
   content: "";
   position: absolute;
   top: 0px;
   left: 0px;
   width: 100%;
   height: 100%;
-  border: 1px solid #eee;
 }
 
 /* ボディデータ・フッターデータ(枠線) */
-.gridtable tbody td:not(.frozen-column),
-.gridtable tfoot td:not(.frozen-column) {
+.gridtable tbody td,
+.gridtable tfoot td {
   border: 1px solid #eee;
 }
 
 /* セル枠線 */
-.gridtable .frozen-column::before {
+.gridtable tbody .frozen-checkbox::before {
   content: "";
   position: absolute;
   top: 0px;
   left: 0px;
   width: 100%;
   height: 100%;
-  border: 1px solid #eee;
 }
 
 /* ヘッダー列固定 */
@@ -262,9 +265,5 @@ export default {
 /* スクロール領域 */
 .gridtable-wrapper {
   overflow: auto;
-}
-
-.gridtable ~ button, input, select, a {
-  z-index: 3;
 }
 </style>

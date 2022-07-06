@@ -289,7 +289,7 @@ export default class MovieSearch {
       id: "id",
       title: "ID",
       type: "link",
-      style: `${this.rowStyle(50)} cursor:pointer;`,
+      style: this.rowStyle(50),
       frozen: true,
       position: "30px"
     },

@@ -24,9 +24,6 @@ export default {
     css: {
       type: String,
       default: ""
-    },
-    updateFlg: {
-      type: String,
     }
   },
   data: function() {
@@ -46,20 +43,10 @@ export default {
       console.log(hasError);
       console.log(errors.length);
       if (message) {
-        let cssList = ["field-error"];
-        if (this.css) {
-          cssList.push(this.css);
-        }
-
-        this.executor.css = cssList;
+        this.executor.css = [this.css, "field-error"];
         this.message = message;
       } else {
-        let cssList = [];
-        if (this.css) {
-          cssList.push(this.css);
-        }
-
-        this.executor.css = cssList;
+        this.executor.css = [this.css];
         this.message = message;
       }
     }

@@ -12,7 +12,7 @@
                   ジャンル
                 </th>
                 <td class="description">
-                  <select class="select" v-model="genre">
+                  <select class="select" v-model="genre" aria-labelledby="genre">
                     <option value="">全て</option>
                     <option v-for="gen in genres" :value="gen" :key="gen">{{gen}}</option>
                   </select>              

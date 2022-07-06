@@ -164,12 +164,18 @@ export default class Validator {
     for (const v of this.settings.validation) {
       if (v.list) {
         const list = this.getVueData(v.property) ?? [];    
-        for (let i = 0; i < list.length; i++) {
+        for (var i = 0; i < list.length; i++) {
           const indexedName = this.getIndexedFieldName(v.field, i);
           const messages = this.messageStore.get(indexedName);
           if (!messages) {
             this.messageStore.set(indexedName, []);
           }
+        }
+
+        let indexedName = this.getIndexedFieldName(v.field, i);
+        while (this.messageStore.has(indexedName)) {
+          this.messageStore.set(indexedName, []);
+          indexedName = this.getIndexedFieldName(v.field, ++i);
         }
       } else {
         this.messageStore.set(v.field, []);
@@ -210,8 +216,8 @@ export default class Validator {
       return (this.messageStore.get(field) ?? []).length > 0;
     }
 
-    for (const [key, value] of this.messageStore) {
-      if (key && value.length > 0) {
+    for (const [key, message] of this.messageStore) {
+      if (key && message.length > 0) {
         return true;
       }
     }
@@ -228,9 +234,9 @@ export default class Validator {
     }
 
     let error = [];
-    for (let [key, value] of this.messageStore) {
+    for (let [key, message] of this.messageStore) {
       if (key) {
-        error = error.concat(value);
+        error = error.concat(message);
       }
     }
     return {errors: error, messages: []};
@@ -250,7 +256,7 @@ export default class Validator {
    */
   validateRequired(setting, rule, item, index) {
     const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if (pairInfo.value || (pairInfo.value == typeof Number && pairInfo.value == 0)) {
+    if (pairInfo.value || pairInfo.value === 0) {
       return;
     }
 
