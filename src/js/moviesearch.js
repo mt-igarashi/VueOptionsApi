@@ -1,6 +1,8 @@
 import axios from "axios"
 import constants from '../js/constants'
 import utils from '../js/utils'
+import validator from '../js/validator'
+import moviesearch from '../assets/validation/moviesearch'
 
 /*
  * クラス概要: 映画一覧ロジックを担当するクラス
@@ -14,6 +16,7 @@ export default class MovieSearch {
     this.vue = vue;
     this.utils = utils.instance;
     this.constants = constants.instance;
+    this.validator = new validator(this.vue, moviesearch);
   }
   
   /*
@@ -62,6 +65,22 @@ export default class MovieSearch {
    */
   set setConstants(constants) {
       this.constants = constants;
+  }
+
+  /*
+   * 関数概要: Validatorを返却します。
+   * 戻り値：Validator
+   */
+  get getValidator() {
+    return this.validator;
+  }
+  
+  /*
+   * 関数概要: Validatorを設定します。
+   * 引数：constants Validator
+   */
+  set setValidator(validator) {
+      this.validator = validator;
   }
   
   ///////////////////////////////////
@@ -134,6 +153,10 @@ export default class MovieSearch {
         return;
       }
       this.vue.genres = data.result.genres;
+      data.result.movies.forEach(x => {
+        x.check = false;
+        x.printable = (x.id != 1 && x.id != 5 && x.id != 10);
+      });
       this.vue.movies = data.result.movies;
       this.vue.total = data.result.totalCount;
     })

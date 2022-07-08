@@ -38,6 +38,7 @@
       <!-- リンク -->
       <div class="row">
         <div class="col-12 mt-4">
+          <input class="btn btn-primary float-left mb-2" type="button" value="一覧印刷" @click.prevent="print"/>
           <router-link class="float-right" :to="{name: 'MovieCreate'}">新規作成</router-link>
         </div>
       </div>
@@ -55,7 +56,8 @@
                      @check-click="checkclick"
                      @header-button-click="headerbuttonclick"
                      @button-click="buttonclick"
-                     @link-click="linkclick" />
+                     @link-click="linkclick" 
+                     :validator="validator" />
           <PagingLink name="MovieList" :total="total" :pageNumber="instance.pageNumber()" :pageSize="instance.pageSize()" :linkparams="linkparams" />
         </div>
       </div>
@@ -141,6 +143,13 @@ export default {
     constants: function() {
       return this.instance.getConstants;
     },
+
+    /*
+     * 関数概要: Validatorクラスのインスタンスを返却します。
+     */
+    validator: function() {
+      return this.instance.getValidator;
+    },
     
     /*
      * 関数概要: メイン要素のスタイルを返却します。
@@ -197,6 +206,24 @@ export default {
      */
     search: async function() {
       await this.instance.search();
+    },
+
+    /*
+     * 関数概要: 検索処理を行います。
+     */
+    print: async function() {
+      if (!this.validator.validate()) {
+        return;
+      }
+
+      this.daialog = {
+        title: this.constants.InfoTitle,
+        message: "帳票出力に成功しました",
+        ok: null,
+        cancel: null,
+        show: true,
+        type: this.constants.DaialogOk
+      };
     },
     
     /*

@@ -1,0 +1,18 @@
+{
+  "validation": 
+   {
+     "messageProp": "messages",
+     "fields": [{
+       "field": "movies",
+       "name": "",
+       "list": true,
+       "rules": [{
+         "type": "compare",
+         "property": "check",
+         "target": "printable",
+         "checkbox": true,
+         "message": "{0}行目は印刷可能な映画ではありません。"
+       }]
+     }]
+   }
+}

@@ -158,7 +158,7 @@ export default class Constants {
   get DeleteConfirmMessage() {
     return "削除を実行します。よろしければOKボタンを押下してください。";
   }
-  
+
   /*
    * メッセージ(DB更新成功)
    */

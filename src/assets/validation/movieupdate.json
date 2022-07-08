@@ -1,86 +1,93 @@
 {
-  "validation": [
+  "validation": 
    {
-    "field": "title",
-    "name": "タイトル",
-    "property": "movie",
-    "rules": [
-    {
-      "type": "required",
-      "message": "COM-0001"
-    },
-    {
-      "type": "length",
-      "min": 3,
-      "max": 60,
-      "message": "COM-0007"
-    }]
-   },
-   {
-    "field": "releaseDate",
-    "name": "公開日",
-    "property": "movie",
-    "rules": [
-    {
-      "type": "required",
-      "message": "COM-0001"
-    }]
-   },
-   {
-    "field": "genre",
-    "name": "ジャンル",
-    "property": "movie",
-    "rules": [
-    {
-      "type": "required",
-      "message": "COM-0001"
-    },
-    {
-      "type": "regex",
-      "value": "^[A-Z]+[a-zA-Z\"'\\s-]*$",
-      "message": "{0}は先頭半角英字大文字 + 半角英字で入力してください。"
-    },
-    {
-      "type": "maxlength",
-      "value": 30,
-      "message": "COM-0006"
-    }]
-   },
-   {
-    "field": "price",
-    "name": "価格",
-    "property": "movie",
-    "rules": [
-    {
-      "type": "required",
-      "message": "COM-0001"
-    },
-    {
-      "type": "range",
-      "min": 1,
-      "max": 100,
-      "message": "COM-0008"
-    }]
-   },
-   {
-    "field": "rating",
-    "name": "評価",
-    "property": "movie",
-    "rules": [
-    {
-      "type": "required",
-      "message": "COM-0001"
-    },
-    {
-      "type": "regex",
-      "value": "^[A-Z]+[a-zA-Z0-9\"'\\s-]*$",
-      "message": "{0}は先頭半角英字大文字 + 半角英字で入力してください。"
-    },
-    {
-      "type": "maxlength",
-      "value": 5,
-      "message": "COM-0006"
-    }]
-   }
-  ]
+    "fields": [{
+      "field": "movie",
+      "name": "タイトル",
+      "rules": [
+      {
+        "type": "required",
+        "property": "title",
+        "message": "COM-0001"
+      },
+      {
+        "type": "length",
+        "property": "title",
+        "min": 3,
+        "max": 60,
+        "message": "COM-0007"
+      }]
+     },
+     {
+       "field": "movie",
+       "name": "公開日",
+       "rules": [
+       {
+         "type": "required",
+         "property": "releaseDate",
+         "message": "COM-0001"
+       }]
+     },
+     {
+       "field": "movie",
+       "name": "ジャンル",
+       "rules": [
+       {
+         "type": "required",
+         "property": "genre",
+         "message": "COM-0001"
+       },
+       {
+         "type": "regex",
+         "property": "genre",
+         "value": "^[A-Z]+[a-zA-Z\"'\\s-]*$",
+         "message": "{0}は先頭半角英字大文字 + 半角英字で入力してください。"
+       },
+       {
+        "type": "maxlength",
+        "property": "genre",
+        "value": 30,
+        "message": "COM-0006"
+      }]
+     },
+     {
+       "field": "movie",
+       "name": "価格",
+       "rules": [
+       {
+         "type": "required",
+         "property": "price",
+         "message": "COM-0001"
+       },
+       {
+         "type": "range",
+         "property": "price",
+         "min": 1,
+         "max": 100,
+         "message": "COM-0008"
+       }]
+     },
+     {
+       "field": "movie",
+       "name": "評価",
+       "rules": [
+       {
+         "type": "required",
+         "property": "rating",
+         "message": "COM-0001"
+       },
+       {
+         "type": "regex",
+         "property": "rating",
+         "value": "^[A-Z]+[a-zA-Z0-9\"'\\s-]*$",
+         "message": "{0}は先頭半角英字大文字 + 半角英字で入力してください。"
+       },
+       {
+         "type": "maxlength",
+         "property": "rating",
+         "value": 5,
+         "message": "COM-0006"
+       }]
+     }]
+  }
 }

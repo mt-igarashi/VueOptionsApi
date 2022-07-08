@@ -38,11 +38,14 @@
             :style="getStyle(column)"
             @click.prevent="cellclick($event, rowindex, colindex)">
           <template v-if="column.type == 'checkbox'">
-            <input type="checkbox"
-                   :id="getGridCbName(`${rowindex}${colindex}`)"
-                   :name="getGridCbName(`${colindex}`)"
-                   class="gridcb"
-                   @change.prevent="checkclick($event, rowindex, colindex)">
+            <FieldValidator :field="`${column.id}_${rowindex}`" css="gridcb" :tooltip="true" :validator="validator">
+              <template v-slot:control="slotProps">
+              <input type="checkbox"
+                     :id="getGridCbName(`${rowindex}${colindex}`)"
+                     :name="getGridCbName(`${colindex}`)"
+                     :class="slotProps.executor.css">
+              </template>
+            </FieldValidator>
           </template>
           <template v-else-if="column.type == 'button'">
             <template v-for="button in column.buttons" :key="button.value">
@@ -53,7 +56,7 @@
                      @click.prevent="buttonclick($event, button.value, rowindex, colindex)">
             </template>
           </template>
-          <template v-if="column.type == 'link'">
+          <template v-else-if="column.type == 'link'">
             <a href="#" @click.prevent="linkclick($event, rowindex, colindex)">{{item[column.id]}}</a>
           </template>
           <template v-else>
@@ -74,6 +77,7 @@
 </template>
 
 <script>
+import Validator from '../../js/validator';
 export default {
   name: "GridTable",
   props: {
@@ -85,28 +89,34 @@ export default {
     },
     tableStyle: {
       type: String
+    },
+    validator: {
+      type: Object,
+      default: new Validator(this, { validation: [] })
     }
   },
   methods: {
     getHeaderClass: function(column) {
-       let cl = "";
+       let cl = [];
        if (column.frozen) {
-         cl = "frozen-header";
-         if (column.type == "checkbox") {
-           cl += " frozen-checkbox"
-         }
+         cl.push("frozen-header");
        }
-       return [cl, column.class];
+
+       if (column.type == "checkbox") {
+         cl.push(" checkable");
+       }
+       return [cl.join(" "), column.class];
     },
     getColumnClass: function(column) {
-       let cl = "";
+       let cl = [];
        if (column.frozen) {
-         cl = "frozen-column";
-         if (column.type == "checkbox") {
-           cl += " frozen-checkbox"
-         }
+         cl.push("frozen-column");
        }
-       return [cl, column.class];
+
+       if (column.type == "checkbox") {
+         cl.push("checkable");
+       }
+       return [cl.join(" "), column.class];
     },
     getStyle: function(column) {
        let style = "";
@@ -125,17 +135,18 @@ export default {
       const column = this.columns[colindex];
       if (column.headertype == "checkbox") {
         let hcb = document.querySelector(`#${this.getGridHcbName(`0${colindex}`)}`);
+        hcb.checked = !hcb.checked;
+
         let cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
-        if (hcb.checked) {
-          hcb.checked = false;
-          for (const cb of cbList) {
-            cb.checked = false;
-          }
-        } else {
-          hcb.checked = true;
-          for (const cb of cbList) {
-            cb.checked = true;
-          }
+        for (let i = 0; i < cbList.length; i++) {
+          cbList[i].onchange = () => {
+            this.headercheckclick(event, colindex);
+            this.validator.validateField(`${this.columns[colindex].id}_${i}`);
+          };
+        }
+        for (const cb of cbList) {
+          cb.checked = !cb.checked;
+          cb.onchange();
         }
         this.$emit("header-check-click", event, hcb.checked, this.items, colindex);
       }
@@ -148,13 +159,12 @@ export default {
       const column = this.columns[colindex];
       if (column.type == "checkbox") {
         let cb = document.querySelector(`#${this.getGridCbName(`${rowindex}${colindex}`)}`);
-        console.log(cb);
-        if (cb.checked) {
-          cb.checked = false;
-        } else {
-          cb.checked = true;
-        }
-        this.$emit("check-click", event, cb.checked, this.items[rowindex], rowindex, colindex);
+        cb.onchange = () => {
+          this.checkclick(event, rowindex, colindex);
+          this.validator.validateField(`${this.columns[colindex].id}_${rowindex}`);
+        };
+        cb.checked = !cb.checked;
+        cb.onchange();
       }
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
     },
@@ -221,7 +231,7 @@ export default {
 }
 
 /* ヘッダー枠線 */
-.gridtable thead .frozen-checkbox::before {
+.gridtable thead .checkable::before {
   content: "";
   position: absolute;
   top: 0px;
@@ -237,7 +247,7 @@ export default {
 }
 
 /* セル枠線 */
-.gridtable tbody .frozen-checkbox::before {
+.gridtable tbody .checkable::before {
   content: "";
   position: absolute;
   top: 0px;

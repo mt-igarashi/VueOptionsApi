@@ -7,9 +7,6 @@ export default class Validator {
     this.settings = settings;
     this.messageStore = new Map();
     this.callbackStore = new Map();
-    for (const v of this.settings.validation) {
-      this.messageStore.set(v.field, []);
-    }
   }
 
   /*
@@ -85,24 +82,25 @@ export default class Validator {
       return;
     }
 
+    this.messageStore.set(field, []);
     this.initializeMessegeStore();
 
     if (setting.list) {
       const index = Number(this.getIndex(field));
-      const list = this.getVueData(setting.property) ?? [];
-
+      const list = this.getVueData(setting.field) ?? [];
       if (isNaN(index) || list.length < index) {
         return;
       }
-      this.execute(setting, list[index], index);
+      this.execute({ field: setting, item: list[index], rowindex: index });
     } else {
-      this.execute(setting);
+      this.execute({ field: setting });
     }
     
     const hasError = this.hasError(field);
     const errors = this.ConvertErrorMessage();
-    if (setting.messageProp) {
-      this.vue[setting.messageProp] = errors;
+
+    if (this.settings.validation.messageProp) {
+      this.vue[this.settings.validation.messageProp] = errors;
     }
 
     const callback = this.callbackStore.get(field);
@@ -118,31 +116,24 @@ export default class Validator {
    * 引数：callback コールバック関数
    */
   validate() {
-    let messageProps = {};
     this.initializeMessegeStore(true);
-
-    for (const v of this.settings.validation) {
-      if (v.messageProp) {
-        messageProps[v.messageProp] = v.messageProp;
-      }
-
-      if (v.list) {
-        const list = this.getVueData(v.property) ?? [];
+    for (const field of this.settings.validation.fields) {
+      if (field.list) {
+        const list = this.getVueData(field.field) ?? [];
         for (let i = 0; i < list.length; i++) {
-          this.execute(v, list[i], i);
+          this.execute({ field: field, item: list[i], rowindex: i });
         }
       } else {
-        this.execute(v);
+        this.execute({ field: field });
       }
     }
     
     const hasError = this.hasError();
     const errors = this.ConvertErrorMessage();
 
-    const keys = Object.keys(messageProps);
-    keys.forEach((key) => {
-      this.vue[key] = errors;
-    });
+    if (this.settings.validation.messageProp) {
+      this.vue[this.settings.validation.messageProp] = errors;
+    }
 
     for (const [key, callback] of this.callbackStore) {
       if (key) {
@@ -155,30 +146,34 @@ export default class Validator {
 
   /*
    * 関数概要: メッセージストアを初期化します。
+   * 引数：clear 全削除フラグ
    */
   initializeMessegeStore(clear) {
     if (clear) {
       this.messageStore.clear();
     }
 
-    for (const v of this.settings.validation) {
-      if (v.list) {
-        const list = this.getVueData(v.property) ?? [];    
+    for (const field of this.settings.validation.fields) {
+      if (field.list) {
+        const list = this.getVueData(field.field) ?? [];    
         for (var i = 0; i < list.length; i++) {
-          const indexedName = this.getIndexedFieldName(v.field, i);
+          const indexedName = this.getIndexedFieldName(field.field, i);
           const messages = this.messageStore.get(indexedName);
           if (!messages) {
             this.messageStore.set(indexedName, []);
           }
         }
 
-        let indexedName = this.getIndexedFieldName(v.field, i);
+        let indexedName = this.getIndexedFieldName(field.field, i);
         while (this.messageStore.has(indexedName)) {
           this.messageStore.set(indexedName, []);
-          indexedName = this.getIndexedFieldName(v.field, ++i);
+          indexedName = this.getIndexedFieldName(field.field, ++i);
         }
       } else {
-        this.messageStore.set(v.field, []);
+        const messages = this.messageStore.get(field.field) ?? [];
+        if (!messages.length) {
+          this.messageStore.set(field.field, []);
+        }
       }
     }
   }
@@ -199,9 +194,22 @@ export default class Validator {
   getSetting(field) {
     const index = Number(this.getIndex(field));
     const fieldName = isNaN(index) ? field : this.getFieldName(field);
-    for (const v of this.settings.validation) {
-      if (v.field == fieldName) {
-        return v;
+    for (const field of this.settings.validation.fields) {
+      if (field.list) {
+        for (const rule of field.rules) {
+          if (rule.property == fieldName) {
+            return field;
+          }
+        }
+      } else {
+        if (field.field == fieldName) {
+          return field;
+        }
+        for (const rule of field.rules) {
+          if (rule.property == fieldName) {
+            return field;
+          }
+        }
       }
     }
     return null;
@@ -233,13 +241,13 @@ export default class Validator {
       return {errors: this.messageStore.get(field) ?? [], messages: []};
     }
 
-    let error = [];
+    let errors = [];
     for (let [key, message] of this.messageStore) {
       if (key) {
-        error = error.concat(message);
+        errors = errors.concat(message);
       }
     }
-    return {errors: error, messages: []};
+    return {errors: errors, messages: []};
   }
 
   /*
@@ -252,16 +260,22 @@ export default class Validator {
 
   /*
    * 関数概要: Requiredバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateRequired(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
+  validateRequired(map) {
+    const pairInfo = this.getPairInfo(map);
     if (pairInfo.value || pairInfo.value === 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name);
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name);
 
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -270,16 +284,26 @@ export default class Validator {
 
   /*
    * 関数概要: Minバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateMin(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if (pairInfo.value >= Number(rule.value)) {
+  validateMin(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.value);
+    if (pairInfo.value >= Number(map.rule.value)) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.value);
 
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -288,16 +312,26 @@ export default class Validator {
 
   /*
    * 関数概要: Maxバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateMax(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if (pairInfo.value <= Number(rule.value)) {
+  validateMax(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.value);
+    if (pairInfo.value <= Number(map.rule.value)) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.value);
     
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -306,16 +340,26 @@ export default class Validator {
 
   /*
    * 関数概要: MinLengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateMinLength(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if ((pairInfo.value ?? "").length >= rule.value) {
+  validateMinLength(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.value);
+    if ((pairInfo.value ?? "").length >= map.rule.value) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.value);
     
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -324,16 +368,26 @@ export default class Validator {
 
   /*
    * 関数概要: MaxLengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateMaxLength(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if ((pairInfo.value ?? "").length <= rule.value) {
+  validateMaxLength(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.value);
+    if ((pairInfo.value ?? "").length <= map.rule.value) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.value);
     
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -342,16 +396,26 @@ export default class Validator {
 
   /*
    * 関数概要: Lengthバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateLength(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if ((pairInfo.value ?? "").length >= rule.min && (pairInfo.value ?? "").length <= rule.max) {
+  validateLength(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.min, rule.max);
+    if ((pairInfo.value ?? "").length >= map.rule.min && (pairInfo.value ?? "").length <= map.rule.max) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.min, map.rule.max);
     
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -360,16 +424,26 @@ export default class Validator {
 
   /*
    * 関数概要: Rangeバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateRange(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    if (pairInfo.value >= Number(rule.min) && pairInfo.value <= Number(rule.max)) {
+  validateRange(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.min, rule.max);
+    if (pairInfo.value >= Number(map.rule.min) && pairInfo.value <= Number(map.rule.max)) {
+      return;
+    }
+
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.min, map.rule.max);
 
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -378,17 +452,27 @@ export default class Validator {
 
   /*
    * 関数概要: Regexバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateRegex(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
-    const re = new RegExp(rule.value);
+  validateRegex(map) {
+    const pairInfo = this.getPairInfo(map);
+    if (!pairInfo.value && pairInfo.value !== 0) {
+      return;
+    }
+
+    const re = new RegExp(map.rule.value);
     if (re.test((pairInfo.value ?? ""))) {
       return;
     }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, rule.value);
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, map.rule.value);
     
     const messages = this.messageStore.get(pairInfo.fieldName) ?? [];
     messages.push(message);
@@ -397,65 +481,73 @@ export default class Validator {
 
   /*
    * 関数概要: Compareバリデーションを実行します。
-   * 引数：setting validation定義、rule validationルール, item リストアイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        rule validationルール
+   *        item リストアイテム
+   *        rowindex 行インデックス
+   *        colindex 列インデックス
    */
-  validateCompare(setting, rule, item, index) {
-    const pairInfo = this.getPairInfo(setting, rule, item, index);
+  validateCompare(map) {
+    const pairInfo = this.getPairInfo(map);
     let arg1 = pairInfo.value; 
     let arg2 = pairInfo.target; 
-    const operator = rule.operator ?? 0;
-    const type = rule.type ?? "";
+    const operator = map.rule.operator ?? "";
+    const type = map.rule.type ?? "";
 
-    if ((arg1 == null || arg1 == typeof undefined) || (arg2 == null || arg2 == typeof undefined)) {
-      return;
-    }
-
-    if (type.ToLower().trim() == "date") {
+    if (type.toLowerCase().trim() == "date") {
         arg1 = new Date(arg1).getTime();
         arg2 = new Date(arg2).getTime();
     }
 
-    if (type.ToLower().includes("number")) {
+    if (type.toLowerCase().includes("number")) {
       arg1 = Number(arg1);
       arg2 = Number(arg2);
-  }
+    }
 
-    let message = this.getCommonMessage(rule.message);
-    message = this.formatMessage(message, setting.name, arg1, arg2);
+    let message = this.getCommonMessage(map.rule.message);
+    let name = map.item ? `${map.field.name}${map.rowindex + 1}` : map.field.name;
+    message = this.formatMessage(message, name, arg1, arg2);
 
-    switch(operator.ToLower().trim()) {
+    switch(operator.toLowerCase().trim()) {
       case "<": {
-        if (arg1 < arg2) {    
+        if (arg1 < arg2) {
           return;
         }
         break;
       }
       case "<=": {
-        if (arg1 <= arg2) {    
+        if (arg1 <= arg2) {
           return;
         }
         break;
       }
       case ">": {
-        if (arg1 > arg2) {    
+        if (arg1 > arg2) {
           return;
         }
         break;
       }
       case ">=": {
-        if (arg1 >= arg2) {    
+        if (arg1 >= arg2) {
           return;
         }
         break;
       }
       case "==": {
-        if (arg1 == arg2) {    
+        if (arg1 === arg2) {
           return;
         }
         break;
       }
       case "!=": {
-        if (arg1 != arg2) {    
+        if (arg1 !== arg2) {
+          return;
+        }
+        break;
+      }
+      default: {
+        if (arg1 === arg2) {
           return;
         }
         break;
@@ -469,52 +561,63 @@ export default class Validator {
 
   /*
    * 関数概要: バリデーションを実行します。
-   * 引数：setting validation定義、item アイテム、index インデックス
+   * 引数：map パラメータ
+   *        field validation定義
+   *        item リストアイテム
+   *        rowindex 行インデックス
    */
-  execute(setting, item, index)  {
-    for (const rule of setting.rules) {
+  execute(map)  {
+    for (let i =0; i < map.field.rules.length; i++) {
+      const rule = map.field.rules[i]
+      const param = {
+        field: map.field,
+        rule: rule,
+        item: map.item,
+        rowindex: map.rowindex,
+        colindex: i
+      };
       switch(rule.type) {
         case "required": {
-          this.validateRequired(setting, rule, item, index);
+          this.validateRequired(param);
           break;
         }
         case "min": {
-          this.validateMin(setting, rule, item, index);
+          this.validateMin(param);
           break;
         }
         case "max": {
-          this.validateMax(setting, rule, item, index);
+          this.validateMax(param);
           break;
         }
         case "minlength": {
-          this.validateMinLength(setting, rule, item, index);
+          this.validateMinLength(param);
           break;
         }
         case "maxlength": {
-          this.validateMaxLength(setting, rule, item, index);
+          this.validateMaxLength(param);
           break;
         }
         case "length": {
-          this.validateLength(setting, rule, item, index);
+          this.validateLength(param);
           break;
         }
         case "range": {
-          this.validateRange(setting, rule, item, index);
+          this.validateRange(param);
           break;
         }
         case "regex": {
-          this.validateRegex(setting, rule, item, index);
+          this.validateRegex(param);
           break;
         }
         case "compare": {
-          this.validateCompare(setting, rule, item, index);
+          this.validateCompare(param);
           break;
         }
         default: {
           console.log("validation type can't be matched")
         }
       }
-    }
+    } 
   }
 
   /*
@@ -553,24 +656,53 @@ export default class Validator {
 
   /*
    * 関数概要: プロパティの値とフィールド名を返却します。
-   * 引数：setting validation定義、rule ルール、item アイテム、index インデックス
+   * 引数：map パラメータ
+   *       setting validation定義
+   *       rule ルール
+   *       item アイテム
+   *       rowindex 行インデックス
+   *       colindex 列インデックス
    */
-  getPairInfo(setting, rule, item, index) {
+  getPairInfo(map) {
     let value;
     let target;
     let fieldName;
-    if (item) {
-      value = item[setting.field];
-      if (rule.target) {
-        target = item[rule.target];
+    if (map.item) {
+      if (map.rule.target) {
+        target = map.item[map.rule.target];
       }
-      fieldName = this.getIndexedFieldName(setting.field, index);
+      if (map.rule.default) {
+        target = map.rule.default;
+      }
+      if (map.rule.checkbox) {
+        const checked = document.querySelector(`#gridcb${map.rowindex}${map.colindex}`).checked;
+        if (checked) {
+          value =checked;
+        } else {
+          value = target;
+        }
+      } else {
+        value = map.item[map.property];
+      }
+      fieldName = this.getIndexedFieldName(map.rule.property, map.rowindex);
     } else {
-      value = this.getVueData(setting.field, setting.property);
-      if (rule.target) {
-        target = this.getVueData(rule.target, setting.property);
+      if (map.rule.target) {
+        target = this.getVueData(map.field.field, map.rule.property);
       }
-      fieldName = setting.field;
+      if (map.rule.default) {
+        target = map.rule.default;
+      }
+      if (map.rule.checkbox) {
+        const checked = document.querySelector(`#gridcb${map.rowindex}${map.colindex}`).checked;
+        if (checked) {
+          value = checked;
+        } else {
+          value = target;
+        }
+      } else {
+        value = this.getVueData(map.field.field, map.rule.property);
+      }
+      fieldName = map.rule.property ? map.rule.property : map.field.field;
     }
 
     return { value: value, target: target, fieldName: fieldName };
@@ -586,7 +718,7 @@ export default class Validator {
       return field;
     }
     let list = field.split("_");
-    return list.slice(0, list.length - 2).join("_");
+    return list.slice(0, list.length - 1).join("_");
   }
 
   /*
@@ -614,14 +746,14 @@ export default class Validator {
 
   /*
    * 関数概要: Vueコンポーネントが保持しているデータを返却します。
-   * 引数：property プロパティ名、prefix プレフィックス
+   * 引数：field フィールド名、property プロパティ名
    */
-  getVueData(property, prefix) {
-    if (!prefix) {
-      return this.vue[property];
+  getVueData(field, property) {
+    if (!property) {
+      return this.vue[field];
     }
     
-    const data = this.vue[prefix];
+    const data = this.vue[field];
     if (!data) {
       return null;
     }
