@@ -9,7 +9,7 @@
             @click.prevent="headerclick($event, index)">
           <template v-if="column.headertype == 'checkbox'">
             <input type="checkbox"
-                   :id="getGridHcbName(`0${index}`)"
+                   :id="getGridHcbId(0, index)"
                    :name="getGridHcbName(index)"
                    class="gridhcb"
                    @change.prevent="headercheckclick($event, index)">
@@ -41,8 +41,8 @@
             <FieldValidator :field="`${column.id}_${rowindex}`" css="gridcb" :tooltip="true" :validator="validator">
               <template v-slot:control="slotProps">
               <input type="checkbox"
-                     :id="getGridCbName(`${rowindex}${colindex}`)"
-                     :name="getGridCbName(`${colindex}`)"
+                     :id="getGridCbId(rowindex, colindex)"
+                     :name="getGridCbName(colindex)"
                      :class="slotProps.executor.css">
               </template>
             </FieldValidator>
@@ -125,8 +125,14 @@ export default {
        }
        return [style, column.style];
     },
+    getGridHcbId: function(rowindex, colindex) {
+      return `gridhcb${rowindex}${colindex}`;
+    },
     getGridHcbName: function(colindex) {
       return `gridhcb${colindex}`;
+    },
+    getGridCbId: function(rowindex, colindex) {
+      return `gridcb${rowindex}${colindex}`;
     },
     getGridCbName: function(colindex) {
       return `gridcb${colindex}`;
@@ -145,7 +151,7 @@ export default {
           };
         }
         for (const cb of cbList) {
-          cb.checked = !cb.checked;
+          cb.checked = hcb.checked;
           cb.onchange();
         }
         this.$emit("header-check-click", event, hcb.checked, this.items, colindex);
@@ -158,13 +164,29 @@ export default {
     cellclick: function(event, rowindex, colindex) {
       const column = this.columns[colindex];
       if (column.type == "checkbox") {
-        let cb = document.querySelector(`#${this.getGridCbName(`${rowindex}${colindex}`)}`);
+        let cb = document.querySelector(`#${this.getGridCbId(rowindex, colindex)}`);
         cb.onchange = () => {
           this.checkclick(event, rowindex, colindex);
           this.validator.validateField(`${this.columns[colindex].id}_${rowindex}`);
         };
         cb.checked = !cb.checked;
         cb.onchange();
+
+        let hcb = document.querySelector(`#${this.getGridHcbId(0, colindex)}`);
+        const cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
+        let hasUnchecked = false;
+
+        for (const cb of cbList) {
+          if (!cb.checked) {
+            hcb.checked = false;
+            hasUnchecked = true;
+            break;
+          }
+        }
+
+        if (!hasUnchecked) {
+          hcb.checked = true;
+        }
       }
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
     },
@@ -183,6 +205,24 @@ export default {
     linkclick: function(event, rowindex, colindex) {
       this.$emit("link-click", event, this.items[rowindex], rowindex, colindex);
     }
+  },
+  beforeUpdate: function() {
+    for (let i = 0; i < this.columns.length; i++) {
+      const column = this.columns[i];
+      if (column.type == "checkbox") {
+        let hcb = document.querySelector(`#${this.getGridHcbId(0, i)}`);
+        if(!hcb) {
+          continue;
+        }
+        hcb.checked = false;
+      }
+    }
+    this.validator.initializeMessegeStore(true);
+  },
+  updated: function() {
+    let scroll = document.querySelector(".gridtable-wrapper");
+    scroll.scrollLeft = 0;
+    scroll.scrollTop = 0;
   }
 }
 </script>
@@ -261,7 +301,7 @@ export default {
   /* 横スクロール時に固定する */
   position: -webkit-sticky;
   position: sticky;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* セル列固定 */
@@ -270,6 +310,10 @@ export default {
   position: -webkit-sticky;
   position: sticky;
   z-index: 1;
+}
+
+.gridtable tbody tr td:first-of-type {
+  z-index: 2;
 }
 
 /* スクロール領域 */

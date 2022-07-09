@@ -38,7 +38,11 @@
       <!-- リンク -->
       <div class="row">
         <div class="col-12 mt-4">
-          <input class="btn btn-primary float-left mb-2" type="button" value="一覧印刷" @click.prevent="print"/>
+          <input class="btn btn-primary float-left mb-1" type="button" value="一覧印刷" @click.prevent="print"/>
+          <span class="icon-description ml-3">
+            <img alt="アイコン説明" src="../assets/small_v_error.png">
+            このアイコンが表示されている場合、マウスオーバーでメッセージが表示されます
+          </span>
           <router-link class="float-right" :to="{name: 'MovieCreate'}">新規作成</router-link>
         </div>
       </div>
@@ -338,5 +342,11 @@ export default {
 .search-button {
   min-width: 680px;
   max-width: 680px;  
+}
+
+.icon-description {
+  font-weight:lighter;
+  color: crimson;
+  font-size: small;
 }
 </style>

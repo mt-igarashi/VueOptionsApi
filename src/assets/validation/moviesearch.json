@@ -10,7 +10,7 @@
          "type": "compare",
          "property": "check",
          "target": "printable",
-         "checkbox": true,
+         "checkbox": "#gridcb{rowindex}0",
          "message": "{0}行目は印刷可能な映画ではありません。"
        }]
      }]

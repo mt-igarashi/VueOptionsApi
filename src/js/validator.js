@@ -568,13 +568,12 @@ export default class Validator {
    */
   execute(map)  {
     for (let i =0; i < map.field.rules.length; i++) {
-      const rule = map.field.rules[i]
+      const rule = map.field.rules[i];
       const param = {
         field: map.field,
         rule: rule,
         item: map.item,
-        rowindex: map.rowindex,
-        colindex: i
+        rowindex: map.rowindex
       };
       switch(rule.type) {
         case "required": {
@@ -675,9 +674,11 @@ export default class Validator {
         target = map.rule.default;
       }
       if (map.rule.checkbox) {
-        const checked = document.querySelector(`#gridcb${map.rowindex}${map.colindex}`).checked;
+        const checked = document.querySelector(
+                          map.rule.checkbox.replaceAll("{rowindex}",
+                          map.rowindex)).checked;
         if (checked) {
-          value =checked;
+          value = checked;
         } else {
           value = target;
         }
@@ -693,7 +694,9 @@ export default class Validator {
         target = map.rule.default;
       }
       if (map.rule.checkbox) {
-        const checked = document.querySelector(`#gridcb${map.rowindex}${map.colindex}`).checked;
+        const checked = document.querySelector(
+                          map.rule.checkbox.replaceAll("{rowindex}",
+                          map.rowindex)).checked;
         if (checked) {
           value = checked;
         } else {

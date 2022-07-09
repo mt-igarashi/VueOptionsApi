@@ -304,7 +304,7 @@ export default class MovieSearch {
       id: "check",
       headertype: "checkbox",
       type: "checkbox",
-      style: this.rowStyle(60),
+      style: this.rowStyle(65),
       frozen: true,
       position: "0"
     },
@@ -312,16 +312,16 @@ export default class MovieSearch {
       id: "id",
       title: "ID",
       type: "link",
-      style: this.rowStyle(60),
+      style: this.rowStyle(50),
       frozen: true,
-      position: "60px"
+      position: "65px"
     },
     {
       id: "title",
       title: "タイトル",
       style: this.rowStyle(),
       frozen: true,
-      position: "120px"
+      position: "115px"
     },
     {
       id: "releaseDate",

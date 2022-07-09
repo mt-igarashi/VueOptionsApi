@@ -43,6 +43,7 @@ export default {
 
 .question-tooltip:hover:after {
   content: attr(data-message);
+  text-align: left;
   position: absolute;
   color: #721c24;
   font-weight: lighter;

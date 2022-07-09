@@ -86,7 +86,7 @@ export default {
   position: absolute;
   color: #721c24;
   background-color: #f8d7da;
-  padding: 4px 5px;
+  padding: 3px 5px;
   bottom: 0; right: 0;
   transform: translate(100%, 100%);
   border-radius: 5px 5px 5px 5px;
