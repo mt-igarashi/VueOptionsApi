@@ -1,12 +1,16 @@
 <template>
   <div>
     <template v-if="tooltip">
-      <abbr v-if="message" class="error-tooltip" :data-title="message">&nbsp;&nbsp;&nbsp;&nbsp;</abbr>
       <slot name="control" :executor="executor"></slot>
+      <span v-if="message && loaded" :data-message="message" class="field-tooltip">
+        <img class="ml-2" alt="警告" src="../../assets/small_v_error.png">
+      </span>
     </template>
     <template v-else>
       <slot name="control" :executor="executor"></slot>
-      <div v-if="message && !tooltip" class="alert alert-danger error-msg">
+      <img v-if="message && loaded" class="ml-2" alt="警告" src="../../assets/small_v_error.png">
+      <img v-if="!message && loaded" class="ml-2" alt="OK" src="../../assets/small_v_ok.png">
+      <div v-if="message" class="error-msg">
         {{message}}
       </div>
     </template>
@@ -38,6 +42,7 @@ export default {
   },
   data: function() {
     return {
+      loaded: false,
       message: "",               // エラーメッセージ
       executor: reactive({
         css: [this.css],
@@ -49,9 +54,9 @@ export default {
     validate: function() {
       this.validator.validateField(this.field);
     },
-    callback: function(hasError, errors, message) {
-      console.log(hasError);
+    callback: function(errors, message) {
       console.log(errors.errors.length);
+      this.loaded = true;
       if (message) {
         this.executor.css = [this.css, "field-error"];        
         this.message = message;
@@ -69,21 +74,22 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-abbr {
+
+.field-tooltip {
   position: absolute;
-  width: fit-content;
-  height: fit-content;
+  top: 11px;
+  z-index: 3;
 }
 
-abbr:hover:after {
-  content: attr(data-title);
-  position: sticky;
+.field-tooltip:hover:after {
+  content: attr(data-message);
+  position: absolute;
   color: #721c24;
   background-color: #f8d7da;
   padding: 4px 5px;
   bottom: 0; right: 0;
   transform: translate(100%, 100%);
   border-radius: 5px 5px 5px 5px;
-  white-space: nowrap;
+  white-space: pre;
 }
 </style>

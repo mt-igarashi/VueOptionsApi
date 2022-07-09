@@ -45,6 +45,9 @@ export default {
     daialog: {
       type: Object
     }
+  },
+  created: function() {
+    document.querySelector("body")["background-color"] = "transparent"
   }
 }
 </script>

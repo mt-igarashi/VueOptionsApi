@@ -2,7 +2,7 @@
   <BaseLayout :mainStyle="mainStyle" :messages="messages" :loading="loading">
     <template #main-title>映画詳細</template>
     <template #main>      
-      <!-- 検索条件 -->
+      <!-- 映画項目表示 -->
       <div class="row mt-4">
         <div class="col-12">
           <table class="condition">

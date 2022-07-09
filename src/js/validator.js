@@ -105,7 +105,7 @@ export default class Validator {
 
     const callback = this.callbackStore.get(field);
     if (callback) {
-      callback(hasError, errors, this.getErrorMessage(field));
+      callback(errors, this.getErrorMessage(field));
     }
 
     return !hasError;
@@ -137,7 +137,7 @@ export default class Validator {
 
     for (const [key, callback] of this.callbackStore) {
       if (key) {
-        callback(hasError, errors, this.getErrorMessage(key));
+        callback(errors, this.getErrorMessage(key));
       }
     }
 
