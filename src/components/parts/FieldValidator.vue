@@ -87,9 +87,10 @@ export default {
   color: #721c24;
   background-color: #f8d7da;
   padding: 3px 5px;
-  bottom: 0; right: 0;
+  bottom: 20px; right: -5px;
   transform: translate(100%, 100%);
   border-radius: 5px 5px 5px 5px;
   white-space: pre;
+  opacity: 0.95;
 }
 </style>

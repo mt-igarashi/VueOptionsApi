@@ -137,22 +137,31 @@ export default {
     getGridCbName: function(colindex) {
       return `gridcb${colindex}`;
     },
+    addCheckboxEvent: function() {
+      for (let colindex = 0; colindex < this.columns.length; colindex++) {
+        const column = this.columns[colindex];
+        if (column.type == "checkbox") {
+          const cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
+          for (let rowindex = 0; rowindex < cbList.length; rowindex++) {
+            let cb = cbList[rowindex];
+            cb.onchange = (event) => {
+              this.checkclick(event, cb.checked, rowindex, colindex);
+              this.validator.validateField(`${column.id}_${rowindex}`);
+            };
+          }
+        }
+      }
+    },
     headerclick: function(event, colindex) {
       const column = this.columns[colindex];
       if (column.headertype == "checkbox") {
-        let hcb = document.querySelector(`#${this.getGridHcbName(`0${colindex}`)}`);
+        let hcb = document.querySelector(`#${this.getGridHcbId(0, colindex)}`);
         hcb.checked = !hcb.checked;
 
         let cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
-        for (let i = 0; i < cbList.length; i++) {
-          cbList[i].onchange = () => {
-            this.headercheckclick(event, colindex);
-            this.validator.validateField(`${this.columns[colindex].id}_${i}`);
-          };
-        }
         for (const cb of cbList) {
           cb.checked = hcb.checked;
-          cb.onchange();
+          cb.onchange(event);
         }
         this.$emit("header-check-click", event, hcb.checked, this.items, colindex);
       }
@@ -165,36 +174,28 @@ export default {
       const column = this.columns[colindex];
       if (column.type == "checkbox") {
         let cb = document.querySelector(`#${this.getGridCbId(rowindex, colindex)}`);
-        cb.onchange = () => {
-          this.checkclick(event, rowindex, colindex);
-          this.validator.validateField(`${this.columns[colindex].id}_${rowindex}`);
-        };
         cb.checked = !cb.checked;
-        cb.onchange();
+        cb.onchange(event);
 
         let hcb = document.querySelector(`#${this.getGridHcbId(0, colindex)}`);
         const cbList = document.querySelectorAll(`[name="${this.getGridCbName(colindex)}"]`);
-        let hasUnchecked = false;
-
+        let allChecked = true;
+        
         for (const cb of cbList) {
           if (!cb.checked) {
-            hcb.checked = false;
-            hasUnchecked = true;
+            allChecked = false;
             break;
           }
         }
-
-        if (!hasUnchecked) {
-          hcb.checked = true;
-        }
+        hcb.checked = allChecked;
       }
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
     },
     headercheckclick: function(event, colindex) {
       this.$emit("header-check-click", event, event.target.checked, this.items, colindex);
     },
-    checkclick: function(event, rowindex, colindex) {
-      this.$emit("check-click", event, event.target.checked, this.items[rowindex], rowindex, colindex);
+    checkclick: function(event, checked, rowindex, colindex) {
+      this.$emit("check-click", event, checked, this.items[rowindex], rowindex, colindex);
     },
     headerbuttonclick: function(event, value, colindex) {
       this.$emit("header-button-click", event, this.items, value, colindex);
@@ -223,6 +224,7 @@ export default {
     let scroll = document.querySelector(".gridtable-wrapper");
     scroll.scrollLeft = 0;
     scroll.scrollTop = 0;
+    this.addCheckboxEvent();
   }
 }
 </script>

@@ -202,7 +202,6 @@ export default class MovieSearch {
         show: true,
         type: this.constants.DaialogOk
       };
-      this.vue.messages = this.utils.createMessage(this.constants.DbDeleted);
       this.vue.$router.push({name: "MovieList", params: {state: "search", tick: Date.now()}});
     })
     .catch((error) => {

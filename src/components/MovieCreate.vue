@@ -10,7 +10,7 @@
               <tr>
                 <th class="title">
                   タイトル
-                  <Question message="映画のタイトルを入力します。&#10;洋画はできるだけキャッチーなタイトルにしましょう！" class="float-right" />
+                  <Question title="タイトル入力ヒント" :messages="['まず映画のタイトルをきめましょう', 'できるだけキャッチーなタイトルにするのがおすすめです']" />
                 </th>
                 <td class="description">
                   <FieldValidator field="title" :validator="validator">
@@ -23,7 +23,7 @@
               <tr>
                 <th class="title">
                   公開日
-                  <Question message="映画の公開日を入力します。&#10;原則公開日の１か月前のものを登録します。&#10;期日が過ぎたものについては管理者に連絡してください。" class="float-right" />
+                  <Question title="公開日入力ヒント" :messages="['原則公開日の１か月前のものを登録します', '期日が過ぎたものについては管理者に連絡してください']" />
                 </th>
                 <td class="description">
                   <FieldValidator field="releaseDate" :validator="validator">
@@ -36,7 +36,7 @@
               <tr>
                 <th class="title">
                   ジャンル
-                  <Question message="映画のジャンルを入力します。&#10;一押しの映画の場合は他で使われていない&#10;ジャンルを入力しましょう。&#10;入力したジャンルでユーザが検索できるようになります。" class="float-right" />
+                  <Question title="ジャンル入力ヒント" :messages="['一押しの映画の場合は他で使われていないジャンルを入力しましょう', '入力したジャンルでユーザが検索できるようになります']" />
                 </th>
                 <td class="description">
                   <FieldValidator field="genre" :validator="validator">
@@ -49,7 +49,7 @@
               <tr>
                 <th class="title">
                   価格
-                  <Question message="映画の価格を入力します。公開される際は原則ドル表記になります。" class="float-right" />
+                  <Question title="価格入力ヒント" :messages="['フィルムメーカーが提示した価格を入力しましょう', '公開される際は原則ドル表記になります']" />
                 </th>
                 <td class="description">
                   <FieldValidator field="price" :validator="validator">
@@ -62,7 +62,7 @@
               <tr>
                 <th class="title">
                   評価
-                  <Question message="映画の評価を入力します。&#10;他のレビュアーに参考となる値を入力してください。&#10;しかしながら主観的な評価も考慮するようにしましょう。" class="float-right" />
+                  <Question title="評価入力ヒント" :messages="['他のレビュアーに参考となる値を入力しましょう', 'しかしながら主観的な評価も考慮するようにしましょう']" />
                 </th>
                 <td class="description">
                   <FieldValidator field="rating" :validator="validator">
