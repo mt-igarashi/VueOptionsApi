@@ -19,4 +19,6 @@ export default {
 
 @import "./css/bootstrap.css";
 @import "./css/style.css";
+@import "https://use.fontawesome.com/releases/v5.11.0/css/all.css";
+
 </style>

@@ -79,3 +79,16 @@
   padding: 0.10rem 0.10rem;
   margin-bottom: 0;
 }
+
+.exlink:visited{
+  color : inherit;
+}
+
+.exlink[href^="http"]:after,
+.exlink[href^="//"]:after {
+  margin: 0 0 0 3px;
+  font-family: "Font Awesome 5 Free";
+  content: '\f35d';
+  font-weight: 900;
+  color : deepskyblue;
+}

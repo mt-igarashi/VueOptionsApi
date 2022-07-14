@@ -13,8 +13,18 @@
 
 <script>
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "Messages",
+  
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   props: {
+    // メッセージ
     messages: {
       type: Object
     }

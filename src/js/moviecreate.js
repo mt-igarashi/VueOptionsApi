@@ -2,6 +2,7 @@ import axios from "axios"
 import constants from '../js/constants'
 import utils from '../js/utils'
 import validator from '../js/validator'
+import movieconstants from '../js/movieconstants'
 import movieupdate from '../assets/validation/movieupdate'
 
 /*
@@ -16,6 +17,7 @@ export default class MovieCreate {
     this.vue = vue;
     this.utils = utils.instance;
     this.constants = constants.instance;
+    this.movieconstants = movieconstants.instance;
     this.validator = new validator(this.vue, movieupdate);
   }
   
@@ -68,6 +70,22 @@ export default class MovieCreate {
   }
 
   /*
+   * 関数概要: MovieConstantsを返却します。
+   * 戻り値：MovieConstants
+   */
+  get getMovieConstants() {
+    return this.movieconstants;
+  }
+  
+  /*
+   * 関数概要: MoiveConstantsを設定します。
+   * 引数：movieconstants MovieConstants
+   */
+  set setMovieConstants(movieconstants) {
+      this.movieconstants = movieconstants;
+  }
+
+  /*
    * 関数概要: Validatorを返却します。
    * 戻り値：Validator
    */
@@ -104,6 +122,8 @@ export default class MovieCreate {
         this.vue.messages = this.utils.createErrorMessage(this.constants.DbUpdateFailed);
         return;
       }
+      this.vue.step = 2;
+      this.vue.disable = true;
       this.vue.messages = this.utils.createMessage(this.constants.DbUpdated);
     })
     .catch((error) => {
@@ -126,7 +146,26 @@ export default class MovieCreate {
    * 関数概要: 映画一覧に遷移します。
    */
   movePrevPage() {
-    const mscond = this.vue.$store.state.mscond;
-    this.vue.$router.push({name: "MovieList", params: {state: "recovery"}, query: {pageNumber: mscond.pageNumber, pageSize: mscond.pageSize}});
+    this.vue.$router.push({name: "MovieList", params: {state: "search"}});
+  }
+
+  /*
+    * 関数概要: フィールドを検証します。
+    * 引数：slotProps スロットオブジェクト
+    */
+  validateField(slotProps) {
+    slotProps.executor.validate();
+    this.vue.$nextTick(() => {
+      const icons = document.querySelectorAll(".field-valid");
+      if (icons.length == 5) {
+        if (this.vue.step != 1) {
+          this.vue.step = 1;
+          this.vue.steps = Array.from(this.vue.steps); 
+        }
+      } else if (this.step != 0) {
+        this.vue.step = 0;
+        this.vue.steps = Array.from(this.vue.steps);
+      }
+    });
   }
 }

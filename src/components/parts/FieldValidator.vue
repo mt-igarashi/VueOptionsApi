@@ -21,52 +21,99 @@
 import { reactive } from 'vue'
 
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "FieldValidator",
+
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   props: {
+    // バリデータ
     validator: {
       required: true,
       type: Object
     },
+
+    // フィールド名
     field: {
       required: true,
       type: String
     },
+
+    // Input項目用CSS
     css: {
       type: String,
       default: ""
     },
+
+    // ツールチップのみを表示するかを示すフラグ
     tooltip: {
+      type: Boolean,
+      default: false
+    },
+
+    // 編集項目であるかを示すフラグ
+    edit: {
       type: Boolean,
       default: false
     }
   },
+
+  /*
+   * 概要: データプロパティ
+   * (リアクティブデータ。変更がUIに即時反映される)
+   */
   data: function() {
     return {
-      loaded: false,
+      loaded: false,             // ページロード完了フラグ
       message: "",               // エラーメッセージ
-      executor: reactive({
-        css: [this.css],
+      executor: reactive({       // バリデータ実行オブジェクト
+        css: [this.css],         // バリデータ実行後CSS
         validate: this.validate  // バリデーション関数
       }),
     }
   },
+
+  /*
+   * 概要: メソッドプロパティ
+   * (値が動的に変わる場合は、算出プロパティではなくメソッドを使う)
+   */
   methods: {
+    /*
+     * 関数概要: フィールドバリデータを実行します。
+     */
     validate: function() {
       this.validator.validateField(this.field);
     },
-    callback: function(errors, message) {
-      console.log(errors.errors.length);
+
+    /*
+     * 関数概要: バリデータ実行後のコールバック関数。
+     * 引数：message メッセージ、error フィールドエラーメッセージ
+     */
+    callback: function(message, error) {
+      console.log(Object.keys(message).length);
       this.loaded = true;
-      if (message) {
+      if (error) {
         this.executor.css = [this.css, "field-error"];        
-        this.message = message;
+        this.message = error;
       } else {
-        this.executor.css = [this.css];
-        this.message = message;
+        this.executor.css = [this.css, "field-valid"];
+        this.message = "";
       }
     }
   },
+
+  /*
+   * 関数概要: インスタンス生成、および、データ初期化後処理
+   */
   created: function() {
+    if (this.edit) {
+      this.callback({}, "");
+    }
     this.validator.addCallbackStore(this.field, this.callback);
   }
 }

@@ -1,24 +1,30 @@
 <template>
-  <template v-if="loading">
-    <div class="spinner_box">
-        <div class="spinner type1">
-            <span>Loading...</span>
-        </div>
-    </div>
-  </template>
-  <template v-else>
-    <div class="spinner_box loaded">
-        <div class="spinner type1">
-            <span>Loading...</span>
-        </div>
-    </div>
-  </template>
+  <div v-if="loading" class="spinner_box">
+      <div class="spinner type1">
+          <span>Loading...</span>
+      </div>
+  </div>
+  <div v-else class="spinner_box loaded">
+      <div class="spinner type1">
+          <span>Loading...</span>
+      </div>
+  </div>
 </template>
 
 <script>
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "Loading",
+
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   props: {
+    // ローディング中フラグ
     loading: {
       type: Boolean
     }

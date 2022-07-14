@@ -7,7 +7,7 @@
         <th :class="getHeaderClass(column)"
             :style="getStyle(column)"
             @click.prevent="headerclick($event, index)">
-          <template v-if="column.headertype == 'checkbox'">
+          <template v-if="index == 0 && column.headertype == 'checkbox'">
             <input type="checkbox"
                    :id="getGridHcbId(0, index)"
                    :name="getGridHcbName(index)"
@@ -37,7 +37,7 @@
         <td :class="getColumnClass(column)"
             :style="getStyle(column)"
             @click.prevent="cellclick($event, rowindex, colindex)">
-          <template v-if="column.type == 'checkbox'">
+          <template v-if="colindex == 0 && column.type == 'checkbox'">
             <FieldValidator :field="`${column.id}_${rowindex}`" css="gridcb" :tooltip="true" :validator="validator">
               <template v-slot:control="slotProps">
               <input type="checkbox"
@@ -78,24 +78,50 @@
 
 <script>
 import Validator from '../../js/validator';
+
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "GridTable",
+  
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   props: {
+    // カラム定義
     columns: {
       type: Array
     },
+
+    // 一覧表示用配列
     items: {
       type: Array
     },
+
+    // テーブルスタイル
     tableStyle: {
       type: String
     },
+
+    // バリデータ
     validator: {
       type: Object,
-      default: new Validator(this, { validation: [] })
+      default: new Validator(this, {validation: []})
     }
   },
+
+  /*
+   * 概要: メソッドプロパティ
+   * (値が動的に変わる場合は、算出プロパティではなくメソッドを使う)
+   */
   methods: {
+    /*
+     * 関数概要: ヘッダーに適用するClassを返却します。
+     * 引数：column カラム定義
+     */
     getHeaderClass: function(column) {
        let cl = [];
        if (column.frozen) {
@@ -107,6 +133,11 @@ export default {
        }
        return [cl.join(" "), column.class];
     },
+
+    /*
+     * 関数概要: カラムに適用するClassを返却します。
+     * 引数：column カラム定義
+     */
     getColumnClass: function(column) {
        let cl = [];
        if (column.frozen) {
@@ -118,6 +149,11 @@ export default {
        }
        return [cl.join(" "), column.class];
     },
+
+    /*
+     * 関数概要: カラムに適用するstyleを返却します。
+     * 引数：column カラム定義
+     */
     getStyle: function(column) {
        let style = "";
        if (column.position) {
@@ -125,18 +161,42 @@ export default {
        }
        return [style, column.style];
     },
+
+    /*
+     * 関数概要: ヘッダーチェックボックスのIDを返却します。
+     * 引数：rowindex 行インデックス、colindex 列インデックス
+     */
     getGridHcbId: function(rowindex, colindex) {
       return `gridhcb${rowindex}${colindex}`;
     },
+
+    /*
+     * 関数概要: ヘッダーチェックボックスのname属性を返却します。
+     * 引数：colindex 列インデックス
+     */
     getGridHcbName: function(colindex) {
       return `gridhcb${colindex}`;
     },
+
+    /*
+     * 関数概要: 一覧チェックボックスのIDを返却します。
+     * 引数：rowindex 行インデックス、colindex 列インデックス
+     */
     getGridCbId: function(rowindex, colindex) {
       return `gridcb${rowindex}${colindex}`;
     },
+
+    /*
+     * 関数概要: 一覧チェックボックスのname属性を返却します。
+     * 引数：colindex 列インデックス
+     */
     getGridCbName: function(colindex) {
       return `gridcb${colindex}`;
     },
+
+    /*
+     * 関数概要: チェックボックスにchangeイベントを追加します。
+     */
     addCheckboxEvent: function() {
       for (let colindex = 0; colindex < this.columns.length; colindex++) {
         const column = this.columns[colindex];
@@ -152,6 +212,11 @@ export default {
         }
       }
     },
+
+    /*
+     * 関数概要: ヘッダークリックイベントを実行します。
+     * 引数：event イベント、colindex 列インデックス
+     */
     headerclick: function(event, colindex) {
       const column = this.columns[colindex];
       if (column.headertype == "checkbox") {
@@ -167,9 +232,19 @@ export default {
       }
       this.$emit("header-click", event, this.items, colindex);
     },
+
+    /*
+     * 関数概要: 行クリックイベントを実行します。
+     * 引数：event イベント、rowindex 行インデックス
+     */
     rowclick: function(event, rowindex) {
       this.$emit("row-click", event, this.items[rowindex], rowindex);
     },
+
+    /*
+     * 関数概要: セルクリックイベントを実行します。
+     * 引数：event イベント、rowindex 行インデックス、colindex 列インデックス
+     */
     cellclick: function(event, rowindex, colindex) {
       const column = this.columns[colindex];
       if (column.type == "checkbox") {
@@ -191,22 +266,51 @@ export default {
       }
       this.$emit("cell-click", event, this.items[rowindex], rowindex, colindex);
     },
+
+    /*
+     * 関数概要: ヘッダーチェックボックスクリックイベントを実行します。
+     * 引数：event イベント、colindex 列インデックス
+     */
     headercheckclick: function(event, colindex) {
       this.$emit("header-check-click", event, event.target.checked, this.items, colindex);
     },
+
+    /*
+     * 関数概要: 一覧チェックボックスクリックイベントを実行します。
+     * 引数：event イベント、checked チェック/未チェック、rowindex 行インデックス、colindex 列インデックス
+     */
     checkclick: function(event, checked, rowindex, colindex) {
       this.$emit("check-click", event, checked, this.items[rowindex], rowindex, colindex);
     },
+
+    /*
+     * 関数概要: ヘッダーボタンクリックイベントを実行します。
+     * 引数：event イベント、value ボタン名、colindex 列インデックス
+     */
     headerbuttonclick: function(event, value, colindex) {
       this.$emit("header-button-click", event, this.items, value, colindex);
     },
+
+    /*
+     * 関数概要: 一覧ボタンクリックイベントを実行します。
+     * 引数：event イベント、value ボタン名、rowindex 行インデックス、colindex 列インデックス
+     */
     buttonclick: function(event, value, rowindex, colindex) {
       this.$emit("button-click", event, this.items[rowindex], value, rowindex, colindex);
     },
+
+    /*
+     * 関数概要: 一覧リンククリックイベントを実行します
+     * 引数：event イベント、rowindex 行インデックス、colindex 列インデックス
+     */
     linkclick: function(event, rowindex, colindex) {
       this.$emit("link-click", event, this.items[rowindex], rowindex, colindex);
     }
   },
+
+  /*
+   * 関数概要: コンポーネント描画前処理
+   */
   beforeUpdate: function() {
     for (let i = 0; i < this.columns.length; i++) {
       const column = this.columns[i];
@@ -220,10 +324,15 @@ export default {
     }
     this.validator.initializeMessegeStore(true);
   },
+
+  /*
+   * 関数概要: コンポーネント描画後処理
+   */
   updated: function() {
     let scroll = document.querySelector(".gridtable-wrapper");
     scroll.scrollLeft = 0;
     scroll.scrollTop = 0;
+    window.scrollTo(0, 0);
     this.addCheckboxEvent();
   }
 }

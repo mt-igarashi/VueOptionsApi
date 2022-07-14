@@ -1,7 +1,13 @@
 <template>
   <BaseLayout :mainStyle="mainStyle" :messages="messages" :loading="loading" :daialog="daialog">
     <template #main-title>映画作成</template>
-    <template #main>      
+    <template #main>
+      <!-- ステップバー -->
+      <div class="row mt-4">
+        <div class="col-12">
+            <StepBar :step="step" :steps="steps" />
+        </div>
+      </div>
       <!-- 映画登録項目 -->
       <div class="row mt-4">
         <div class="col-12">
@@ -10,12 +16,12 @@
               <tr>
                 <th class="title">
                   タイトル
-                  <Question title="タイトル入力ヒント" :messages="['まず映画のタイトルをきめましょう', 'できるだけキャッチーなタイトルにするのがおすすめです']" />
+                  <Question :title="movieconstants.MovieTitleHint" :messages="movieconstants.MovieTitlePoint" />
                 </th>
                 <td class="description">
                   <FieldValidator field="title" :validator="validator">
                     <template v-slot:control="slotProps">
-                      <input id="title" type="text" v-model="movie.title" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                      <input id="title" type="text" v-model="movie.title" :disabled="disable" :class="slotProps.executor.css" @input="validateField(slotProps)">
                     </template>
                   </FieldValidator>
                 </td>
@@ -23,12 +29,12 @@
               <tr>
                 <th class="title">
                   公開日
-                  <Question title="公開日入力ヒント" :messages="['原則公開日の１か月前のものを登録します', '期日が過ぎたものについては管理者に連絡してください']" />
+                  <Question :title="movieconstants.MovieReleaseDateHint" :messages="movieconstants.MovieReleaseDatePoint" />
                 </th>
                 <td class="description">
                   <FieldValidator field="releaseDate" :validator="validator">
                     <template v-slot:control="slotProps">
-                      <input type="date" v-model="movie.releaseDate" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                      <input type="date" v-model="movie.releaseDate" :disabled="disable" :class="slotProps.executor.css" @input="validateField(slotProps)">
                     </template>
                   </FieldValidator>
                 </td>
@@ -36,12 +42,12 @@
               <tr>
                 <th class="title">
                   ジャンル
-                  <Question title="ジャンル入力ヒント" :messages="['一押しの映画の場合は他で使われていないジャンルを入力しましょう', '入力したジャンルでユーザが検索できるようになります']" />
+                  <Question :title="movieconstants.MovieGenreHint" :messages="movieconstants.MovieGenrePoint" />
                 </th>
                 <td class="description">
                   <FieldValidator field="genre" :validator="validator">
                     <template v-slot:control="slotProps">
-                      <input id="genre" type="text" v-model="movie.genre" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                      <input id="genre" type="text" v-model="movie.genre" :disabled="disable" :class="slotProps.executor.css" @input="validateField(slotProps)">
                     </template>
                   </FieldValidator>
                 </td>
@@ -49,12 +55,12 @@
               <tr>
                 <th class="title">
                   価格
-                  <Question title="価格入力ヒント" :messages="['フィルムメーカーが提示した価格を入力しましょう', '公開される際は原則ドル表記になります']" />
+                  <Question :title="movieconstants.MoviePriceHint" :messages="movieconstants.MoviePricePoint" />
                 </th>
                 <td class="description">
                   <FieldValidator field="price" :validator="validator">
                     <template v-slot:control="slotProps">
-                      <input id="price" type="text" v-model="movie.price" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                      <input id="price" type="text" v-model="movie.price" :disabled="disable" :class="slotProps.executor.css" @input="validateField(slotProps)">
                     </template>
                   </FieldValidator>
                 </td>
@@ -62,12 +68,12 @@
               <tr>
                 <th class="title">
                   評価
-                  <Question title="評価入力ヒント" :messages="['他のレビュアーに参考となる値を入力しましょう', 'しかしながら主観的な評価も考慮するようにしましょう']" />
+                  <Question :title="movieconstants.MovieRateHint" :messages="movieconstants.MovieRatePoint" />
                 </th>
                 <td class="description">
                   <FieldValidator field="rating" :validator="validator">
                     <template v-slot:control="slotProps">
-                      <input id="rating" type="text" v-model="movie.rating" :class="slotProps.executor.css" @input="slotProps.executor.validate()">
+                      <input id="rating" type="text" v-model="movie.rating" :disabled="disable" :class="slotProps.executor.css" @input="validateField(slotProps)">
                     </template>
                   </FieldValidator>
                 </td>
@@ -124,12 +130,15 @@ export default {
       },
       messages: {},      // メッセージ
       loading: false,    // ローディング表示フラグ
-      daialog: {}        // ダイアログパラメータ
+      daialog: {},       // ダイアログパラメータ
+      step: 0,           // 現在のステップ
+      steps: {},         // ステップ表示用オブジェクト
+      disable: false     // 入力項目非活性フラグ
     }
   },
   
   /*
-   * 概要: 算出プロパティ(キャッシュされるので変更不可)
+   * 概要: 算出プロパティ(キャッシュされるので変更不可。ただしリアクティブデータは変更されると再計算される)
    *       リアクティブデータであるかVueが判断できない場合の更新を防ぐため
    *       値が変わらない場合はできるだけこちらを使う
    */
@@ -153,6 +162,13 @@ export default {
      */
     constants: function() {
       return this.instance.getConstants;
+    },
+
+    /*
+     * 関数概要: MovieConstantsクラスのインスタンスを返却します。
+     */
+    movieconstants: function() {
+      return this.instance.getMovieConstants;
     },
 
     /*
@@ -205,6 +221,21 @@ export default {
         show: true
       };
     },
+
+    /*
+     * 関数概要: フィールドを検証します。
+     * 引数：slotProps スロットオブジェクト
+     */
+    validateField: function(slotProps) {
+      this.instance.validateField(slotProps);
+    }
+  },
+
+  /*
+   * 関数概要: インスタンス生成、および、データ初期化後処理
+   */
+  created: function() {
+    this.steps = this.movieconstants.MovieUpdateSteps;
   }
 }
 </script>

@@ -27,37 +27,85 @@ import constants from '../../js/constants'
 import utils from '../../js/utils'
 
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "Modal",
+
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   props: {
+    // ダイアログ表示用パラメータ
     daialog: {
       type: Object
     }
   },
+
+  /*
+   * 概要: 算出プロパティ(キャッシュされるので変更不可。ただしリアクティブデータは変更されると再計算される)
+   *       リアクティブデータであるかVueが判断できない場合の更新を防ぐため
+   *       値が変わらない場合はできるだけこちらを使う
+   */
   computed: {
+    /*
+     * 関数概要: Constantsクラスのインスタンスを返却します。
+     */
     constants: function() {
       return constants.instance;
     },
+
+    /*
+     * 関数概要: Utilsクラスのインスタンスを返却します。
+     */
     utils: function() {
       return utils.instance;
     }
   },
+
+  /*
+   * 概要: メソッドプロパティ
+   * (値が動的に変わる場合は、算出プロパティではなくメソッドを使う)
+   */
   methods: {
+    /*
+     * 関数概要: ダイアログタイトルを返却します。
+     */
     getTitle: function() {
       let params = this.daialog ?? { title: "" };
       return params.title ?? "";
     },
+
+    /*
+     * 関数概要: ダイアログメッセージを返却します。
+     */
     getMessage: function() {
       let params = this.daialog ?? { message: "" };
       return params.message ?? "";
     },
+
+    /*
+     * 関数概要: ダイアログ表示フラグを返却します。
+     */
     getShow: function() {
       let params = this.daialog ?? { show: false };
       return params.show ?? false;
     },
+
+    /*
+     * 関数概要: ダイアログタイプを返却します。
+     */
     getType: function() {
       let params = this.daialog ?? { type: this.constants.DaialogOkCancel };
       return params.type ?? this.constants.DaialogOkCancel;
     },
+
+    /*
+     * 関数概要: ボタン押下時の処理を実行します。
+     * 引数：type OK/Cancel種別
+     */
     execute: async function(type) {
       var params = this.daialog ?? { ok: () => {} };
       if (type == "ok") {

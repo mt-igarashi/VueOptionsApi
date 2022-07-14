@@ -24,8 +24,20 @@
 
 <script>
 export default {
+  /*
+   * 概要: 名前プロパティ
+   * (開発者ツール、Vue Devtoolsに表示される)
+   */
   name: "Menu",
+
+  /*
+   * 概要: プロパティ
+   * (遷移元画面、親コンポーネント、QueryStringなどから受け取る)
+   */
   methods: {
+    /*
+     * 関数概要: メニュー開閉トグルクリック時の処理を行います。
+     */
     toggleClicked: function() {
       const elem = document.querySelector("#navbarNavAltMarkup");
       elem.classList.toggle("collapse");
