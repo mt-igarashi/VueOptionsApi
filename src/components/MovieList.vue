@@ -30,6 +30,7 @@
           </table>
         </div>
         <div class="col-12 search-button">
+          <input class="btn btn-primary float-left mt-3" type="button" value="一覧印刷" @click.prevent="print"/>
           <input class="btn btn-primary float-right mt-3" type="button" value="検索" @click.prevent="reload(true)"/>
           <input class="btn btn-primary float-right mt-3" id="reload" style="display:none" type="button" value="リロード" @click.prevent="reload()"/>
         </div>
@@ -37,12 +38,7 @@
 
       <!-- リンク -->
       <div class="row">
-        <div class="col-12 mt-4">
-          <input class="btn btn-primary float-left mb-1" type="button" value="一覧印刷" @click.prevent="print"/>
-          <span class="icon-description ml-3">
-            <img alt="アイコン説明" src="../assets/small_v_error.png">
-            このアイコンが表示されている場合、マウスオーバーでメッセージが表示されます
-          </span>
+        <div class="col-12">
           <router-link class="float-right" :to="{name: 'MovieCreate'}">新規作成</router-link>
         </div>
       </div>
@@ -53,14 +49,9 @@
           <GridTable :columns="this.columns"
                      :items="movies"
                      :tableStyle="tableStyle"
-                     @header-click="headerclick"
-                     @row-click="rowclick"
-                     @cell-click="cellclick"
-                     @header-check-click="headercheckclick"
-                     @check-click="checkclick"
-                     @header-button-click="headerbuttonclick"
                      @button-click="buttonclick"
-                     @link-click="linkclick" 
+                     @link-click="linkclick"
+                     @check-click="checkclick"
                      :validator="validator" />
           <PagingLink name="MovieList" :total="total" :pageNumber="instance.pageNumber()" :pageSize="instance.pageSize()" :linkparams="linkparams" />
         </div>
@@ -117,7 +108,11 @@ export default {
       messages: {},      // メッセージリスト
       loading: false,    // ローディング表示フラグ
       window: null,      // 映画編集画面用Windowオブジェクト
-      daialog: {}        // ダイアログパラメータ
+      daialog: {},       // ダイアログパラメータ
+      step: 0,           // 現在のステップ
+      steps: {},         // ステップ表示用オブジェクト
+      fadeIn: false,     // ステップフェードイン
+      fadeOut: true     // ステップフェードアウト
     }
   },
   
@@ -258,53 +253,13 @@ export default {
       this.utils.console("linkclick", event, item, rowindex, colindex);
       this.instance.openEdit(item);
     },
-    
-    ///////////////////////////////////
-    //
-    // イベント確認用
-    //
-    ///////////////////////////////////
-    
-    /*
-     * 関数概要: 一覧のヘッダー押下時の処理
-     */
-    headerclick: function(event, items, colindex) {
-      this.utils.console("headerclick", event, items, colindex);
-    },
-    
-    /*
-     * 関数概要: 一覧の行押下時の処理
-     */
-    rowclick: function(event, item, rowindex) {
-      this.utils.console("rowclick", event, item, rowindex);
-    },
-    
-    /*
-     * 関数概要: 一覧行のセル押下時の処理
-     */
-    cellclick: function(event, item, rowindex, colindex) {
-      this.utils.console("cellclick", event, item, rowindex, colindex);
-    },
-    
-    /*
-     * 関数概要: 一覧ヘッダーのチェックボックス押下時の処理
-     */
-    headercheckclick: function(event, checked, item, rowindex) {
-      this.utils.console("headercheckclick", event, checked, item, rowindex);
-    },
-    
+
     /*
      * 関数概要: 一覧行のチェックボックス押下時の処理
      */
     checkclick: function(event, checked, item, rowindex, colindex) {
       this.utils.console("checkclick", event, checked, item, rowindex, colindex);
-    },
-    
-    /*
-     * 関数概要: 一覧ヘッダーのボタン押下時の処理
-     */
-    headerbuttonclick: function(event, item, value, rowindex) {
-      this.utils.console("headerbuttonclick", event, item, value, rowindex);
+      this.instance.updateSteps(checked);
     }
   },
   

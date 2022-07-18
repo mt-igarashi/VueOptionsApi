@@ -189,8 +189,8 @@ export default class MovieEdit {
   validateField(slotProps) {
     slotProps.executor.validate();
     this.vue.$nextTick(() => {
-      const icons = document.querySelectorAll(".field-valid");
-      if (icons.length == 5) {
+      const errors = document.querySelectorAll(".field-valid");
+      if (errors.length == 5) {
         if (this.vue.step != 1) {
           this.vue.step = 1;
           this.vue.steps = Array.from(this.vue.steps); 

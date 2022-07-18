@@ -112,4 +112,15 @@ export default class MovieConstants {
       {title: "登録", message: "お疲れさまでした<br>登録が完了しました"}
     ];
   }
+
+  /*
+   * 映画一覧印刷ステップ
+   */
+  get MoviePrintListSteps() {
+    return [
+      {title: "入力", message: "！マークにカーソルを合わせると<br>エラーが表示されます"},
+      {title: "確認", message: "エラー内容を確認後チェックを<br>外してください"},
+      {title: "印刷準備完了", message: "一覧印刷ボタンを押下してください"}
+    ];
+  }
 }

@@ -2,6 +2,7 @@ import axios from "axios"
 import constants from '../js/constants'
 import utils from '../js/utils'
 import validator from '../js/validator'
+import movieconstants from '../js/movieconstants'
 import moviesearch from '../assets/validation/moviesearch'
 
 /*
@@ -16,6 +17,7 @@ export default class MovieSearch {
     this.vue = vue;
     this.utils = utils.instance;
     this.constants = constants.instance;
+    this.movieconstants = movieconstants.instance;
     this.validator = new validator(this.vue, moviesearch);
   }
   
@@ -94,6 +96,7 @@ export default class MovieSearch {
    * 引数：to 遷移先routeを格納したパラメータ
    */
   async init(to) {
+    this.vue.steps = this.movieconstants.MoviePrintListSteps;
     this.setParams(to);
     
     if (this.vue.params.state == "recovery") {
@@ -235,6 +238,36 @@ export default class MovieSearch {
       this.vue.window.close();
     }
     this.vue.window = window.open(route.href, "_blank");
+  }
+
+  /*
+   * 関数概要: ステップを更新します。
+   */
+  updateSteps() {
+    this.vue.$nextTick(() => {
+      const cbList = document.querySelectorAll(":checked");
+      if (cbList.length == 0) {
+        if (this.step != 0) {
+          this.vue.step = 0;
+          this.vue.steps = Array.from(this.vue.steps);
+        }
+        return;
+      }
+
+      if (this.validator.hasError()) {
+        this.vue.fadeIn = true;
+        this.vue.fadeOut = false;
+        if (this.step != 1) {
+          this.vue.step = 1;
+          this.vue.steps = Array.from(this.vue.steps);
+        }
+      } else if (this.vue.step != 2) {
+        this.vue.fadeIn = true;
+        this.vue.fadeOut = true;
+        this.vue.step = 2;
+        this.vue.steps = Array.from(this.vue.steps); 
+      }
+    });
   }
   
   ///////////////////////////////////
